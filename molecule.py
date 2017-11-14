@@ -5,6 +5,11 @@ import atom
 import bond
 import angle
 
+import pytest
+
+class BaseMolecule(object):
+    pass
+
 class Molecule(object):
     """ A molecule
 
@@ -37,7 +42,9 @@ class Molecule(object):
         # currently we do not transfer bond information
         return M
 
+    #
     # getters and setters for various properties
+    #
     def addAtom(self, _atom):
         #assert isinstance(_atom, atom.Atom), "You attempted to add something that was not an atom."
         self._atoms.append(copy.deepcopy(_atom))
@@ -50,8 +57,16 @@ class Molecule(object):
         """ Returns the number of atoms in the molecule """
         return len(self._atoms)
 
+    def getAtom(self, idx):
+        n_atoms = self.getNumAtoms()
+        if idx < 0:
+            raise IndexError("argument idx to getAtom must be >= 0")
+        if idx >= n_atoms:
+            raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
+        return self._atoms[idx]
+
     def getAtoms(self):
-        """ Returns all bonds (as an iterator) in the molecule """
+        """ Returns all atoms (as an iterator) in the molecule """
         for _atom in self._atoms:
             yield _atom
 
@@ -88,7 +103,9 @@ class Molecule(object):
         assert isinstance(value, int)
         self._multiplicity = value
 
+    #
     # properties that are lazily evaluated such as bonds and angles
+    #
     def percieveBonds(self):
         """ This method attempts to percieve bonds
 
@@ -105,7 +122,8 @@ class Molecule(object):
                 dr_cov = atom1.getCovalentRadius() + atom2.getCovalentRadius() + self._bond_threshold
                 R2_cov = dr_cov**2
                 if R2 < R2_cov:
-                    yield bond.Bond(id1=iat, id2=jat)
+                    yield bond.Bond(id1=atom1.getIdx(), id2=atom2.getIdx())
+
 
     def percieveAngles(self):
         """ This method attemps to percieve angles
@@ -121,8 +139,10 @@ class Molecule(object):
                     katm = bond2.getNbrAtomIdx(jatm)
                     yield angle.Angle(iatm, jatm, katm)
 
+    #
     # specialized functions to extract information stored in
     # other classes related to molecule
+    #
     def getCoordinates(self):
         """ Returns a numpy array with all the coordinates
             of all the atoms in the molecule in angstrom
@@ -156,3 +176,92 @@ class Molecule(object):
         assert mass != 0.0, "Total mass of molecule cannot be zero."
 
         return Rcm / mass
+
+    #
+    # Specialized iterators
+    #
+    def iterAtomAtoms(self, atom):
+        """ Iterates over all atoms covalently bound to an atom
+
+            Arguments:
+            atom_index -- the atom whose neighbours to get
+        """
+
+        neighbour_indices = []
+        for ibond, bond in enumerate(self.getBonds()):
+            try:
+                nbr_index = bond.getNbrAtomIdx(atom.getIdx())
+            except ValueError:
+                continue
+            else:
+                neighbour_indices.append(nbr_index)
+
+        for _atom in self._atoms:
+            if _atom.getIdx() in neighbour_indices:
+                yield _atom
+
+
+    def findChildren(self, atom):
+        """ Finds all atoms which are connected in the molecular graph to atom
+
+            Arguments:
+            atom -- the atom to use as the base for finding neighbours
+        """
+        atoms = []
+        old_atoms = [atom]
+
+        for i in range(2):
+            atoms = []
+            for _atom in old_atoms:
+                new_atoms = []
+                for _nbr in self.iterAtomAtoms(_atom):
+                    if _nbr not in old_atoms:
+                        new_atoms.append(_nbr)
+                ll = [a.getIdx() for a in new_atoms]
+
+                if len(new_atoms) > 0:
+                    atoms.extend(new_atoms)
+
+            if len(atoms) > 0:
+                old_atoms.extend(atoms)
+            else:
+                break
+
+        return old_atoms
+
+def load_molecule(filename):
+    from util import LABEL2Z
+    mol = Molecule()
+    with open(filename, 'r') as f:
+        n = int(f.readline())
+        title = f.readline().strip()
+        mol.setName(title)
+        for i in range(n):
+            tokens = f.readline().split()
+            Z = LABEL2Z[tokens[0]]
+            mol.addAtom(atom.Atom(Z, xyz=map(float, tokens[1:]), idx=i))
+
+    return mol
+
+def test_molecule():
+    mol = Molecule()
+    assert mol.getNumAtoms() == 0
+
+    # testing basic stuff
+    mol.setName("test")
+    assert mol.getName() == "test"
+
+    mol.setCharge(-5)
+    assert mol.getCharge() == -5
+
+    mol.setMultiplicity(1)
+    assert mol.getMultiplicity() == 1
+
+    # test with a molecule
+    mol = load_molecule('HOH.xyz')
+    assert mol.getNumAtoms() == 3
+    assert len(list(mol.getBonds())) == 2
+    assert mol.getName() == "HOH"
+
+if __name__ == '__main__':
+    pass
