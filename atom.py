@@ -76,3 +76,5 @@ class Atom(object):
     def getCoordination(self):
         return self._coordination
 
+    def __eq__(self, other):
+        return self.getIdx() == other.getIdx()
