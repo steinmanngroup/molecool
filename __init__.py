@@ -9,7 +9,7 @@ __maintainer__ = "Casper Steinmann"
 __email__ = "casper.steinmann@gmail.com"
 __status__ = "Alpha"
 __doc__ = """
-Molecool
+molecool
 ========
 
 Basic module to handle molecules which are represented as
