@@ -54,6 +54,7 @@ class BaseMolecule(object):
         """ Adds an atom to the molecule """
         raise NotImplementedError
 
+
     def addAtoms(self, *args):
         """ Adds multiple atoms to a molecule """
         for _atom in args:
@@ -66,6 +67,7 @@ class BaseMolecule(object):
         """ Returns the number of atoms in the molecule """
         raise NotImplementedError
 
+
     def getAtom(self, idx):
         """ Returns an atom based on its index
 
@@ -77,13 +79,16 @@ class BaseMolecule(object):
         """
         raise NotImplementedError
 
+
     def getAtoms(self):
         """ Returns an iterator of all atoms in the molecule """
         raise NotImplementedError
 
+
     def getBonds(self):
         """ Returns an iterator of all bonds in the molecule """
         raise NotImplementedError
+
 
     def getAngles(self):
         """ Returns an iterator of all angles in the molecule """
@@ -96,6 +101,7 @@ class BaseMolecule(object):
         """ Returns the name of the molecule """
         return self._name
 
+
     def setName(self, value):
         """ Sets the name of the molecule
 
@@ -105,9 +111,11 @@ class BaseMolecule(object):
         assert isinstance(value, str)
         self._name = value
 
+
     def getCharge(self):
         """ Returns the integer charge of the molecule """
         return self._charge
+
 
     def setCharge(self, value):
         """ Sets the integer charge of the molecule
@@ -119,9 +127,11 @@ class BaseMolecule(object):
             raise ValueError("Argument 'value' must be of type integer")
         self._charge = value
 
+
     def getMultiplicity(self):
         """ Returns the multiplicity of the molecule """
         return self._multiplicity
+
 
     def setMultiplicity(self, value):
         """ Sets the multiplicity of the molecule
@@ -133,6 +143,9 @@ class BaseMolecule(object):
             raise ValueError("Argument 'value' must be of type integer")
         self._multiplicity = value
 
+    #
+    # properties that are lazily evaluated such as bonds
+    #
     def percieveBonds(self):
         """ Attempts to percieve covalent bonds in the molecule """
         raise NotImplementedError
@@ -152,6 +165,7 @@ class BaseMolecule(object):
 
         return c
 
+
     def setCoordinates(self, value):
         """ Sets coordinates of molecule
 
@@ -159,6 +173,7 @@ class BaseMolecule(object):
             value -- coordinates to store. Must be numpy array.
         """
         raise NotImplementedError
+
 
     def getCenterOfMass(self):
         """ Calculates the center of mass in units of Angstrom """
@@ -173,6 +188,9 @@ class BaseMolecule(object):
 
         return Rcm / mass
 
+    #
+    # Specialized iterators
+    #
     def iterAtomAtoms(self, atom):
         """ Iterates over all atoms covalently bound to an atom
 
@@ -193,11 +211,15 @@ class BaseMolecule(object):
             if _atom.getIdx() in neighbour_indices:
                 yield _atom
 
+
     def findChildren(self, atom):
         """ Finds all atoms in the molecular graph as the supplied atom
 
             Arguments:
             atom -- the atom whose neighbours to get
+
+            Returns:
+            List of atoms sorted according to their internal index
         """
         raise NotImplementedError
 
@@ -220,13 +242,16 @@ class Molecule(BaseMolecule):
         """ Initializes an empty molecule """
         BaseMolecule.__init__(self)
 
+
     def addAtom(self, _atom):
         """ Adds an atom to the molecule """
         self._atoms.append(copy.deepcopy(_atom))
 
+
     def getNumAtoms(self):
         """ Returns the number of atoms in the molecule """
         return len(self._atoms)
+
 
     def getAtom(self, idx):
         """ Returns an atom based on its index
@@ -244,10 +269,12 @@ class Molecule(BaseMolecule):
             raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
         return self._atoms[idx]
 
+
     def getAtoms(self):
         """ Returns all atoms (as an iterator) in the molecule """
         for _atom in self._atoms:
             yield _atom
+
 
     def getBonds(self):
         """ Returns an iterator of all angles in the molecule
@@ -272,9 +299,7 @@ class Molecule(BaseMolecule):
                     katm = bond2.getNbrAtomIdx(jatm)
                     yield angle.Angle(jatm, iatm, katm)
 
-    #
-    # properties that are lazily evaluated such as bonds
-    #
+
     def percieveBonds(self):
         """ Attempts to percieve covalent bonds in the molecule
 
@@ -291,10 +316,7 @@ class Molecule(BaseMolecule):
                 if R2 < R2_cov:
                     yield bond.Bond(id1=atom1.getIdx(), id2=atom2.getIdx())
 
-    #
-    # specialized functions to extract information stored in
-    # other classes related to molecule
-    #
+
     def setCoordinates(self, value):
         """ Sets coordinates of molecule
 
@@ -309,16 +331,15 @@ class Molecule(BaseMolecule):
         for iat, _atom in enumerate(self.getAtoms()):
             _atom.setCoordinate(value[iat])
 
-    #
-    # Specialized iterators
-    #
-
 
     def findChildren(self, atom):
         """ Finds all atoms in the molecular graph as the supplied atom
 
             Arguments:
             atom -- the atom whose neighbours to get
+
+            Returns:
+            List of atoms sorted according to their internal index
         """
         atoms = []
         old_atoms = [atom]
@@ -340,8 +361,8 @@ class Molecule(BaseMolecule):
             else:
                 break
 
-        # sort according to index
         return sorted(old_atoms, key=lambda _atom: _atom.getIdx())
+
 
 class OBMolecule(BaseMolecule):
     """ A molecule
@@ -361,6 +382,7 @@ class OBMolecule(BaseMolecule):
         BaseMolecule.__init__(self)
         self._obmol = openbabel.OBMol()
 
+
     def addAtom(self, _atom):
         """ Adds an atom to the molecule
 
@@ -377,17 +399,21 @@ class OBMolecule(BaseMolecule):
         _obatom.SetFormalCharge(_atom.getFormalCharge())
         self._obmol.AddAtom(_obatom)
 
+
     def getMultiplicity(self):
         """ Returns the multiplicity of the molecule """
         return self._obmol.GetTotalSpinMultiplicity()
+
 
     def getCharge(self):
         """ Returns the integer charge of the molecule """
         return self._obmol.GetTotalCharge()
 
+
     def getNumAtoms(self):
         """ Returns the number of atoms in the molecule """
         return self._obmol.NumAtoms()
+
 
     def getAtom(self, idx):
         """ Returns an atom based on its index
@@ -411,11 +437,13 @@ class OBMolecule(BaseMolecule):
             raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
         return atom.Atom.fromOBAtom(self._obmol.GetAtom(idx+1))
 
+
     def getAtoms(self):
         """ Returns all atoms (as an iterator) in the molecule """
         for _obatom in openbabel.OBMolAtomIter(self._obmol):
             _atom = atom.Atom.fromOBAtom(_obatom)
             yield _atom
+
 
     def getBonds(self):
         """ Returns an iterator of all bonds in the molecule """
@@ -427,6 +455,7 @@ class OBMolecule(BaseMolecule):
             id2 = _obbond.GetEndAtomIdx()
             yield bond.Bond(iat.GetId(), jat.GetId())
 
+
     def getAngles(self):
         """ Returns an iterator of all angles in the molecule """
         self._obmol.FindAngles() # does nothing if angles have been found
@@ -434,9 +463,11 @@ class OBMolecule(BaseMolecule):
             vertex, id1, id2 = _obangle
             yield angle.Angle(vertex, id1, id2)
 
+
     def percieveBonds(self):
         """ Attempts to percieve covalent bonds in the molecule """
         self._obmol.ConnectTheDots()
+
 
     def setCoordinates(self, c):
         """ Sets coordinates of molecule
@@ -452,6 +483,7 @@ class OBMolecule(BaseMolecule):
         for iat, _obatom in enumerate(openbabel.OBMolAtomIter(self._obmol)):
             x, y, z = c[iat]
             _obatom.SetVector(x, y, z)
+
 
     def findChildren(self, atom):
         """ Finds all atoms in the molecular graph as the supplied atom
@@ -469,6 +501,7 @@ class OBMolecule(BaseMolecule):
         atoms = [self.getAtom(i) for i in indices]
         return sorted(atoms, key=lambda _atom: _atom.getIdx())
 
+
 def load_molecule_from_xyz(filename):
     from util import LABEL2Z
     mol = Molecule()
@@ -482,6 +515,7 @@ def load_molecule_from_xyz(filename):
             mol.addAtom(atom.Atom(Z, xyz=map(float, tokens[1:]), idx=i))
 
     return mol
+
 
 def test_basic_molecule():
     mol = Molecule()
@@ -497,12 +531,14 @@ def test_basic_molecule():
     mol.setMultiplicity(1)
     assert mol.getMultiplicity() == 1
 
+
 def test_molecule_from_file():
     # test with a molecule
     mol = load_molecule_from_xyz('HOH.xyz')
     assert mol.getNumAtoms() == 3
     assert len(list(mol.getBonds())) == 2
     assert mol.getName() == "HOH"
+
 
 def test_molecule_copy():
     mol = load_molecule_from_xyz('CH3.xyz')
@@ -528,6 +564,7 @@ def test_molecule_copy():
     assert len(ch1) == len(ch2)
     for a1, a2 in zip(ch1, ch2):
         assert a1 == a2
+
 
 if __name__ == '__main__':
     pass
