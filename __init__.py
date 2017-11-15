@@ -9,7 +9,7 @@ __maintainer__ = "Casper Steinmann"
 __email__ = "casper.steinmann@gmail.com"
 __status__ = "Alpha"
 __doc__ = """
-Molecule
+Molecool
 ========
 
 Basic module to handle molecules which are represented as
@@ -28,4 +28,8 @@ class.
 >>>
 >>> assert 3 == molecule.getNumAtoms()
 
+The package also includes a wrapper around the openbabel
+molecule class so it can be used as a backend. Hopefully
+this will in the future be of some convenience instead
+of me having to program SMARTS myself. Ugh.
 """
