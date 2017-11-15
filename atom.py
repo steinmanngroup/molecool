@@ -59,46 +59,77 @@ class Atom(object):
         return _atom
 
     def getMass(self):
+        """ Returns the mass of the atom """
         return self._mass
 
     def getNuclearCharge(self):
+        """ Returns the nuclear charge of the atom """
         return self._z
 
     def getFormalCharge(self):
+        """ Returns the formal charge of the atom """
         return self._fcharge
 
     def setFormalCharge(self, value):
+        """ Sets the integer formal charge of the atom
+
+            Arguments:
+            value -- the integer formal charge
+        """
         if not isinstance(int, value):
             raise TypeError
 
         self._fcharge = value
 
     def getIdx(self):
+        """ Returns the internal index of the atom """
         return self._idx
 
-    def setIdx(self, idx):
-        if not isinstance(int, idx):
+    def setIdx(self, value):
+        """ Sets the internal index of the atom
+
+            Arguments:
+            value -- the integer index
+        """
+        if not isinstance(int, value):
             raise TypeError
         self._idx = value
 
     def getLabel(self):
+        """ Returns the human readable atomic label """
         return self._label
 
     def getCoordinate(self):
+        """ returns the 3D coordinate of the atom """
         return self._c
 
     def setCoordinate(self, value):
+        """ Sets the 3D coordinate of the atom
+
+            Arguments:
+            value -- the coordinate given as a numpy array
+        """
+        if not isinstance(value, numpy.ndarray):
+            raise TypeError("Argument 'value' must be of type numpy array")
         (n, ) = numpy.shape(value)
-        assert n == 3, "Dimensions of data do not match. Expected 3 but got {}".format(n)
+        if n != 3:
+            raise ValueError("Dimensions of data do not match. Expected 3 but got {}".format(n))
         self._c = value
 
     def getVDWRadius(self):
+        """ Returns the Van der Waal radius of the atom """
         return self._vdw_radius
 
     def getCovalentRadius(self):
+        """ Returns the covalent radius of the atom """
         return self._cov_radius
 
     def setCoordination(self, value):
+        """ Sets the coordination number
+
+            Arguments:
+            value -- the coordination number
+        """
         if not isinstance(int, value):
             raise TypeError
 
@@ -109,10 +140,16 @@ class Atom(object):
         self._coordination = value
 
     def getCoordination(self):
+        """ Returns the coordination number """
         return self._coordination
 
     def __eq__(self, other):
-        return self.getIdx() == other.getIdx()
+        """ Tests that two atoms are equal using various measures """
+        EPS=1.0e-6
+        dr = self.getCoordinate() - other.getCoordinate()
+        R2 = dr.dot(dr)
+
+        return self.getIdx() == other.getIdx() and numpy.sqrt(R2) < EPS
 
     def __repr__(self):
         return "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])".format(self.getNuclearCharge(), self.getCoordinate(), self.getIdx())
