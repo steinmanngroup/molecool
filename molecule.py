@@ -5,12 +5,9 @@ import atom
 import bond
 import angle
 
-import pytest
+import openbabel
 
 class BaseMolecule(object):
-    pass
-
-class Molecule(object):
     """ A molecule
 
         A molecule is a collection of atoms.
@@ -28,7 +25,9 @@ class Molecule(object):
         self._bonds = []
         self._name = ""
 
+    #
     # class methods
+    #
     @classmethod
     def fromMolecule(cls, m):
         """ Loads a molecule from another molecule by copying over all data """
@@ -42,16 +41,118 @@ class Molecule(object):
         # currently we do not transfer bond information
         return M
 
-    #
-    # getters and setters for various properties
-    #
     def addAtom(self, _atom):
-        #assert isinstance(_atom, atom.Atom), "You attempted to add something that was not an atom."
-        self._atoms.append(copy.deepcopy(_atom))
+        raise NotImplementedError
 
     def addAtoms(self, *args):
         for _atom in args:
             self.addAtom(_atom)
+
+    def getNumAtoms(self):
+        raise NotImplementedError
+
+    def getAtom(self, idx):
+        raise NotImplementedError
+
+    def getAtoms(self):
+        raise NotImplementedError
+
+    def getBonds(self):
+        raise NotImplementedError
+
+    def getAngles(self):
+        raise NotImplementedError
+
+    #
+    # getters and setters for simple properties
+    #
+    def getName(self):
+        return self._name
+
+    def setName(self, value):
+        assert isinstance(value, str)
+        self._name = value
+
+    def getCharge(self):
+        return self._charge
+
+    def setCharge(self, value):
+        assert isinstance(value, int)
+        self._charge = value
+
+    def getMultiplicity(self):
+        return self._multiplicity
+
+    def setMultiplicity(self, value):
+        assert isinstance(value, int)
+        self._multiplicity = value
+
+    def percieveBonds(self):
+        raise NotImplementedError
+
+    #
+    # specialized functions to extract information stored in
+    # other classes related to molecule
+    #
+    def getCoordinates(self):
+        """ Returns a numpy array with all the coordinates
+            of all the atoms in the molecule in angstrom
+        """
+        c = numpy.zeros((self.getNumAtoms(), 3))
+        for iat, _atom in enumerate(self.getAtoms()):
+            c[iat] = _atom.getCoordinate()
+
+        return c
+
+    def setCoordinates(self, c):
+        raise NotImplementedError
+
+    def getCenterOfMass(self):
+        """ Calculates the center of mass of the molecule """
+        mass = 0.0
+        Rcm = numpy.zeros(3)
+        for _atom in self.getAtoms():
+            atom_mass = _atom.getMass()
+            mass += atom_mass
+            Rcm += _atom.getCoordinate() * atom_mass
+
+        assert mass != 0.0, "Total mass of molecule cannot be zero."
+
+        return Rcm / mass
+
+    def iterAtomAtoms(self, atom):
+        """ Iterates over all atoms covalently bound to an atom
+
+            Arguments:
+            atom_index -- the atom whose neighbours to get
+        """
+
+        neighbour_indices = []
+        for ibond, bond in enumerate(self.getBonds()):
+            try:
+                nbr_index = bond.getNbrAtomIdx(atom.getIdx())
+            except ValueError:
+                continue
+            else:
+                neighbour_indices.append(nbr_index)
+
+        for _atom in self.getAtoms():
+            if _atom.getIdx() in neighbour_indices:
+                yield _atom
+
+    def findChildren(self, atom):
+        raise NotImplementedError
+
+
+class Molecule(BaseMolecule):
+    def __init__(self):
+        BaseMolecule.__init__(self)
+
+    #
+    # getters and setters for various properties
+    #
+    def addAtom(self, _atom):
+        self._atoms.append(copy.deepcopy(_atom))
 
     def getNumAtoms(self):
         """ Returns the number of atoms in the molecule """
@@ -82,29 +183,22 @@ class Molecule(object):
         for _bond in self._bonds:
             yield _bond
 
-    def getName(self):
-        return self._name
+    def getAngles(self):
+        """ This method attemps to percieve angles
 
-    def setName(self, value):
-        assert isinstance(value, str)
-        self._name = value
-
-    def getCharge(self):
-        return self._charge
-
-    def setCharge(self, value):
-        assert isinstance(value, int)
-        self._charge = value
-
-    def getMultiplicity(self):
-        return self._multiplicity
-
-    def setMultiplicity(self, value):
-        assert isinstance(value, int)
-        self._multiplicity = value
+            It works by iterating through all bonds in the molecule
+        """
+        for ibd, bond1 in enumerate(self.getBonds()):
+            for jbd, bond2 in enumerate(self.getBonds()):
+                if ibd <= jbd: continue
+                jatm = bond1.sharesAtom(bond2)
+                if jatm >= 0:
+                    iatm = bond1.getNbrAtomIdx(jatm)
+                    katm = bond2.getNbrAtomIdx(jatm)
+                    yield angle.Angle(jatm, iatm, katm)
 
     #
-    # properties that are lazily evaluated such as bonds and angles
+    # properties that are lazily evaluated such as bonds
     #
     def percieveBonds(self):
         """ This method attempts to percieve bonds
@@ -124,35 +218,10 @@ class Molecule(object):
                 if R2 < R2_cov:
                     yield bond.Bond(id1=atom1.getIdx(), id2=atom2.getIdx())
 
-
-    def percieveAngles(self):
-        """ This method attemps to percieve angles
-
-            It works by iterating through all bonds in the molecule
-        """
-        for ibd, bond1 in enumerate(self.getBonds()):
-            for jbd, bond2 in enumerate(self.getBonds()):
-                if ibd <= jbd: continue
-                jatm = bond1.sharesAtom(bond2)
-                if jatm >= 0:
-                    iatm = bond1.getNbrAtomIdx(jatm)
-                    katm = bond2.getNbrAtomIdx(jatm)
-                    yield angle.Angle(iatm, jatm, katm)
-
     #
     # specialized functions to extract information stored in
     # other classes related to molecule
     #
-    def getCoordinates(self):
-        """ Returns a numpy array with all the coordinates
-            of all the atoms in the molecule in angstrom
-        """
-        c = numpy.zeros((self.getNumAtoms(), 3))
-        for iat, _atom in enumerate(self.getAtoms()):
-            c[iat] = _atom.getCoordinate()
-
-        return c
-
     def setCoordinates(self, c):
         """ Sets the coordinates of all atoms in the molecule from
             the numpy array
@@ -163,42 +232,9 @@ class Molecule(object):
         for iat, _atom in enumerate(self.getAtoms()):
             _atom.setCoordinate(c[iat])
 
-
-    def getCenterOfMass(self):
-        """ Calculates the center of mass of the molecule """
-        mass = 0.0
-        Rcm = numpy.zeros(3)
-        for atom in self.getAtoms():
-            atom_mass = atom.getMass()
-            mass += atom_mass
-            Rcm += atom.getCoordinate() * atom_mass
-
-        assert mass != 0.0, "Total mass of molecule cannot be zero."
-
-        return Rcm / mass
-
     #
     # Specialized iterators
     #
-    def iterAtomAtoms(self, atom):
-        """ Iterates over all atoms covalently bound to an atom
-
-            Arguments:
-            atom_index -- the atom whose neighbours to get
-        """
-
-        neighbour_indices = []
-        for ibond, bond in enumerate(self.getBonds()):
-            try:
-                nbr_index = bond.getNbrAtomIdx(atom.getIdx())
-            except ValueError:
-                continue
-            else:
-                neighbour_indices.append(nbr_index)
-
-        for _atom in self._atoms:
-            if _atom.getIdx() in neighbour_indices:
-                yield _atom
 
 
     def findChildren(self, atom):
@@ -227,7 +263,87 @@ class Molecule(object):
             else:
                 break
 
-        return old_atoms
+        # sort according to index
+        return sorted(old_atoms, key=lambda _atom: _atom.getIdx())
+
+class OBMolecule(BaseMolecule):
+    def __init__(self):
+        BaseMolecule.__init__(self)
+        self._obmol = openbabel.OBMol()
+
+    def addAtom(self, _atom):
+        """ Adds an atom
+
+            This method creates OBAtoms based on the atoms so it can use
+            the internal structure of OpenBabel. This will surely break
+            at some point for .pdb files
+        """
+        _obatom = openbabel.OBAtom()
+        _obatom.SetAtomicNum(_atom.getNuclearCharge())
+        x, y, z = _atom.getCoordinate()
+        _obatom.SetVector(x, y, z)
+        _obatom.SetId(_atom.getIdx())
+        _obatom.SetFormalCharge(_atom.getFormalCharge())
+        self._obmol.AddAtom(_obatom)
+
+    def getMultiplicity(self):
+        return self._obmol.GetTotalSpinMultiplicity()
+
+    def getCharge(self):
+        return self._obmol.GetTotalCharge()
+
+    def getNumAtoms(self):
+        return self._obmol.NumAtoms()
+
+    def getAtom(self, idx):
+        n_atoms = self.getNumAtoms()
+        if idx < 0:
+            raise IndexError("argument idx to getAtom must be >= 0")
+        if idx >= n_atoms:
+            raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
+        return atom.Atom.fromOBAtom(self._obmol.GetAtom(idx+1))
+
+    def getAtoms(self):
+        for _obatom in openbabel.OBMolAtomIter(self._obmol):
+            _atom = atom.Atom.fromOBAtom(_obatom)
+            yield _atom
+
+    def getBonds(self):
+        """ This method attemps to percieve angles """
+        self._obmol.ConnectTheDots() # what happens if called more than once?
+        for _obbond in openbabel.OBMolBondIter(self._obmol):
+            iat = _obbond.GetBeginAtom()
+            jat = _obbond.GetEndAtom()
+            id1 = _obbond.GetBeginAtomIdx()
+            id2 = _obbond.GetEndAtomIdx()
+            yield bond.Bond(iat.GetId(), jat.GetId())
+
+    def getAngles(self):
+        """ This method attemps to percieve angles """
+        self._obmol.FindAngles() # does nothing if angles have been found
+        for _obangle in openbabel.OBMolAngleIter(self._obmol):
+            vertex, id1, id2 = _obangle
+            yield angle.Angle(vertex, id1, id2)
+
+    def percieveBonds(self):
+        self._obmol.ConnectTheDots()
+
+    def setCoordinates(self, c):
+        assert isinstance(c, numpy.ndarray)
+        (n,k) = numpy.shape(c)
+        assert n == self.getNumAtoms()
+        for iat, _obatom in enumerate(openbabel.OBMolAtomIter(self._obmol)):
+            x, y, z = c[iat]
+            _obatom.SetVector(x, y, z)
+
+    def findChildren(self, atom):
+        self._obmol.ConnectTheDots() # what happens if called more than once?
+        idx = int(atom.getIdx()+1)
+        vector = openbabel.vectorInt()
+        self._obmol.FindChildren(vector, 0, idx)
+        indices = sorted([i-1 for i in vector] + [idx-1])
+        atoms = [self.getAtom(i) for i in indices]
+        return sorted(atoms, key=lambda _atom: _atom.getIdx())
 
 def load_molecule(filename):
     from util import LABEL2Z
@@ -264,4 +380,11 @@ def test_molecule():
     assert mol.getName() == "HOH"
 
 if __name__ == '__main__':
-    pass
+    mol = load_molecule('HOH.xyz')
+    omol = OBMolecule.fromMolecule(mol)
+    assert mol.getNumAtoms() == omol.getNumAtoms()
+    print omol.findChildren( omol.getAtom(0) )
+    print mol.findChildren( mol.getAtom(0) )
+    ang = list(mol.getBonds())
+    oang = list(omol.getBonds())
+    print ang, oang
