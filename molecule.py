@@ -377,10 +377,13 @@ class OBMolecule(BaseMolecule):
         and this convention should be adhered to when attempting to
         update the coordinates.
     """
-    def __init__(self):
+    def __init__(self, fromOBMol=None):
         """ Initializes an empty molecule """
         BaseMolecule.__init__(self)
-        self._obmol = openbabel.OBMol()
+        if fromOBMol is not None:
+            self._obmol = openbabel.OBMol(fromOBMol)
+        else:
+            self._obmol = openbabel.OBMol()
 
 
     def addAtom(self, _atom):
