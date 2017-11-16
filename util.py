@@ -89,3 +89,32 @@ def idamin(a):
             v = value
 
     return idx
+
+def file_to_obmol(filename):
+    file_format = obformat_from_filename(filename)
+    mol = obmol_from_filename_and_format(filename, file_format)
+    return mol
+
+def obformat_from_filename(filename):
+    return file_extension(filename)[1:]
+
+def obmol_from_filename_and_format(filename, file_format):
+    obc = openbabel.OBConversion()
+    obc.SetInFormat(file_format)
+    mol = openbabel.OBMol()
+    obc.ReadFile(mol, filename)
+    return mol
+
+def file_extension(path_to_file):
+    (filename, extension) = get_filename_and_extension(path_to_file)
+    return extension
+
+def file_basename(path_to_file):
+    (filename, extension) = get_filename_and_extension(path_to_file)
+    return filename
+
+def get_filename_and_extension(path_to_file):
+    if not isinstance(path_to_file, str):
+        raise TypeError
+    basename = os.path.split(path_to_file)[1]
+    return os.path.splitext(basename)

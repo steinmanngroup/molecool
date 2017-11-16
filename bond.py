@@ -14,7 +14,7 @@ class Bond(object):
         assert self._id2 != -1
         assert self._id1 != self._id2, "indices cannot refer to same atom."
 
-    def sharesAtom(self, other):
+    def shares_atom(self, other):
         """ Returns an atom index if two bonds shares an atom.
             If an atom is not found or the bonds are the same a -1 is returned.
 
@@ -41,7 +41,7 @@ class Bond(object):
 
         return -1
 
-    def getNbrAtomIdx(self, value):
+    def get_nbr_atom_idx(self, value):
         """ Returns the neighboring atom index in the bond """
         if self._id1 == value: return self._id2
         if self._id2 == value: return self._id1

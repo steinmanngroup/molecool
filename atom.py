@@ -40,16 +40,16 @@ class Atom(object):
         self._label = util.Z2LABEL[Z]
 
     @classmethod
-    def fromAtom(cls, other):
-        atom = cls(other.getNuclearCharge(),
-                   mass=other.getMass(),
-                   fcharge=other.getFormalCharge(),
-                   xyz=other.getCoordinate(),
-                   idx=other.getIdx())
+    def from_atom(cls, other):
+        atom = cls(other.get_nuclear_charge(),
+                   mass=other.get_mass(),
+                   fcharge=other.get_formal_charge(),
+                   xyz=other.get_coordinate(),
+                   idx=other.get_idx())
         return atom
 
     @classmethod
-    def fromOBAtom(cls, _obatom):
+    def from_obatom(cls, _obatom):
         """ Constructs an Atom from an openbabel OBAtom """
         x, y, z = _obatom.GetX(), _obatom.GetY(), _obatom.GetZ()
         _atom = cls(_obatom.GetAtomicNum(),
@@ -58,19 +58,19 @@ class Atom(object):
                     fcharge=_obatom.GetFormalCharge())
         return _atom
 
-    def getMass(self):
+    def get_mass(self):
         """ Returns the mass of the atom """
         return self._mass
 
-    def getNuclearCharge(self):
+    def get_nuclear_charge(self):
         """ Returns the nuclear charge of the atom """
         return self._z
 
-    def getFormalCharge(self):
+    def get_formal_charge(self):
         """ Returns the formal charge of the atom """
         return self._fcharge
 
-    def setFormalCharge(self, value):
+    def set_formal_charge(self, value):
         """ Sets the integer formal charge of the atom
 
             Arguments:
@@ -81,11 +81,11 @@ class Atom(object):
 
         self._fcharge = value
 
-    def getIdx(self):
+    def get_idx(self):
         """ Returns the internal index of the atom """
         return self._idx
 
-    def setIdx(self, value):
+    def set_idx(self, value):
         """ Sets the internal index of the atom
 
             Arguments:
@@ -95,15 +95,15 @@ class Atom(object):
             raise TypeError
         self._idx = value
 
-    def getLabel(self):
+    def get_label(self):
         """ Returns the human readable atomic label """
         return self._label
 
-    def getCoordinate(self):
+    def get_coordinate(self):
         """ returns the 3D coordinate of the atom """
         return self._c
 
-    def setCoordinate(self, value):
+    def set_coordinate(self, value):
         """ Sets the 3D coordinate of the atom
 
             Arguments:
@@ -116,15 +116,15 @@ class Atom(object):
             raise ValueError("Dimensions of data do not match. Expected 3 but got {}".format(n))
         self._c = value
 
-    def getVDWRadius(self):
+    def get_vdw_radius(self):
         """ Returns the Van der Waal radius of the atom """
         return self._vdw_radius
 
-    def getCovalentRadius(self):
+    def get_covalent_radius(self):
         """ Returns the covalent radius of the atom """
         return self._cov_radius
 
-    def setCoordination(self, value):
+    def set_coordination(self, value):
         """ Sets the coordination number
 
             Arguments:
@@ -139,17 +139,30 @@ class Atom(object):
 
         self._coordination = value
 
-    def getCoordination(self):
+    def get_coordination(self):
         """ Returns the coordination number """
         return self._coordination
 
     def __eq__(self, other):
-        """ Tests that two atoms are equal using various measures """
+        """ Tests that two atoms are equal using various measures
+
+            We test the following:
+                * do the atoms have the same nuclear charge?
+                * are they placed ontop of each other
+                * Do they have the same internal ID(*)
+
+            (*) The last requirement is perhaps a bit too strict
+            because it checks that the atoms are exactly equal.
+        """
+        if self.get_nuclear_charge() != other.get_nuclear_charge():
+            return False
         EPS=1.0e-6
-        dr = self.getCoordinate() - other.getCoordinate()
+        dr = self.get_coordinate() - other.get_coordinate()
         R2 = dr.dot(dr)
 
-        return self.getIdx() == other.getIdx() and numpy.sqrt(R2) < EPS
+        return numpy.sqrt(R2) < EPS
+
+        #return self.getIdx() == other.getIdx() and numpy.sqrt(R2) < EPS
 
     def __repr__(self):
-        return "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])".format(self.getNuclearCharge(), self.getCoordinate(), self.getIdx())
+        return "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])".format(self.get_nuclear_charge(), self.get_coordinate(), self.get_idx())
