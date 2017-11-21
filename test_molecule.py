@@ -11,7 +11,7 @@ def load_molecule_from_xyz(filename):
         for i in range(n):
             tokens = f.readline().split()
             Z = LABEL2Z[tokens[0]]
-            mol.add_atom(atom.Atom(Z, xyz=map(float, tokens[1:]), idx=i))
+            mol.add_atom(atom.Atom(Z, xyz=list(map(float, tokens[1:])), idx=i))
 
     return mol
 
