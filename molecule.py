@@ -382,6 +382,7 @@ class OBMolecule(BaseMolecule):
         BaseMolecule.__init__(self)
         if fromOBMol is not None:
             self._obmol = openbabel.OBMol(fromOBMol)
+            self.set_name(fromOBMol.GetTitle())
         else:
             self._obmol = openbabel.OBMol()
 
