@@ -48,6 +48,13 @@ class BaseMolecule(object):
         return M
 
     #
+    # built-in modifications
+    #
+    def __len__(self):
+        """ Returns the number of atoms in the molecule """
+        return self.get_num_atoms()
+
+    #
     # methods to add information to the molecule
     #
     def add_atom(self, _atom):

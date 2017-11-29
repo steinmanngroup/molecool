@@ -20,6 +20,7 @@ def load_molecule_from_xyz(filename):
 def test_basic_molecule():
     mol = Molecule()
     assert mol.get_num_atoms() == 0
+    assert mol.get_num_atoms() == len(mol)
 
     # testing basic stuff
     mol.set_name("test")
@@ -36,6 +37,7 @@ def test_molecule_from_file():
     # test with a molecule
     mol = load_molecule_from_xyz('HOH.xyz')
     assert mol.get_num_atoms() == 3
+    assert mol.get_num_atoms() == len(mol)
     assert len(list(mol.get_bonds())) == 2
     assert mol.get_name() == "HOH"
 
