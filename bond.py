@@ -7,9 +7,10 @@ class Bond(object):
         Currently, there is no reference to the actual Atom objects but instead
         they are indexed in the parent molecule class.
     """
-    def __init__(self, id1, id2):
+    def __init__(self, id1, id2, order=1):
         self._id1 = id1
         self._id2 = id2
+        self._bond_order = order # 1 single, 2 double, 3 triple, 4 any, 5 aromatic # i guess?
         assert self._id1 != -1
         assert self._id2 != -1
         assert self._id1 != self._id2, "indices cannot refer to same atom."
@@ -41,6 +42,10 @@ class Bond(object):
 
         return -1
 
+    def get_bond_order(self):
+        """ Returns the bond order of the bond """
+        return self._bond_order
+
     def get_nbr_atom_idx(self, value):
         """ Returns the neighboring atom index in the bond """
         if self._id1 == value: return self._id2
@@ -54,4 +59,4 @@ class Bond(object):
         return c1 or c2
 
     def __repr__(self):
-        return("Bond({0:d},{1:d})".format(self._id1, self._id2))
+        return("Bond({0:d}, {1:d}, order={2:d})".format(self._id1, self._id2, self._bond_order))
