@@ -452,8 +452,7 @@ class OBMolecule(BaseMolecule):
     def get_atoms(self):
         """ Returns all atoms (as an iterator) in the molecule """
         for _obatom in openbabel.OBMolAtomIter(self._obmol):
-            _atom = atom.Atom.from_obatom(_obatom)
-            yield _atom
+            yield atom.Atom.from_obatom(_obatom)
 
 
     def get_bonds(self):
