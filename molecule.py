@@ -63,9 +63,20 @@ class BaseMolecule(object):
 
 
     def add_atoms(self, *args):
-        """ Adds multiple atoms to a molecule """
+        """ Adds multiple atoms to the molecule """
         for _atom in args:
             self.add_atom(_atom)
+
+
+    def add_bond(self, _bond):
+        """ Adds a bond to the molecule """
+        raise NotImplementedError
+
+
+    def add_bonds(self, *args):
+        """ Adds multiple bonds to the molecule """
+        for _bond in args:
+            self.add_bond(_bond)
 
     #
     # getters and setters for various properties
@@ -255,6 +266,16 @@ class Molecule(BaseMolecule):
         self._atoms.append(copy.deepcopy(_atom))
 
 
+    def add_bond(self, _bond):
+        """ Adds a bond to the molecule
+
+            Checks are performed upon addition of bonds that it does not
+            exist beforehand
+        """
+        if not _bond in list(self.get_bonds()):
+            self._bonds.append(_bond)
+
+
     def get_num_atoms(self):
         """ Returns the number of atoms in the molecule """
         return len(self._atoms)
@@ -284,7 +305,7 @@ class Molecule(BaseMolecule):
 
 
     def get_bonds(self):
-        """ Returns an iterator of all angles in the molecule
+        """ Returns an iterator of all bonds in the molecule
 
             If the bond list has not been calculated before, the bonds are
             percieved through the percieveBonds method
@@ -409,6 +430,10 @@ class OBMolecule(BaseMolecule):
         _obatom.SetId(_atom.get_idx())
         _obatom.SetFormalCharge(_atom.get_formal_charge())
         self._obmol.AddAtom(_obatom)
+
+
+    def add_bond(self, _bond):
+        raise NotImplementedError
 
 
     def get_multiplicity(self):

@@ -1,6 +1,9 @@
 import atom
+import bond
 from molecule import Molecule, OBMolecule
 from util import LABEL2Z
+
+import pytest
 
 import openbabel
 
@@ -31,6 +34,34 @@ def test_basic_molecule():
 
     mol.set_multiplicity(1)
     assert mol.get_multiplicity() == 1
+
+
+def test_molecule_add_atoms_and_bonds():
+    mol = Molecule()
+    _a1 = atom.Atom(1, xyz=[0.0, 0.0, 0.0], idx=0)
+    _a2 = atom.Atom(1, xyz=[0.0, 0.0, 0.9], idx=1)
+    mol.add_atoms(_a1, _a2)
+    assert len(mol) == 2
+    _b1 = bond.Bond(0, 1)
+    mol.add_bonds(_b1)
+    assert len(list(mol.get_bonds())) == 1
+
+    # make sure no bond information is stored twice
+    _b2 = bond.Bond(1, 0)
+    mol.add_bond(_b2)
+    assert len(list(mol.get_bonds())) == 1
+
+    x,y,z = mol.get_center_of_mass()
+    assert abs(z-0.45) < 1.0e-6
+
+    with pytest.raises(IndexError):
+        mol.get_atom(-1) # cannot have negative indices
+
+    with pytest.raises(IndexError):
+        mol.get_atom(100) # cannot choose atom out of range (0, 1)
+
+    assert _a1 == mol.get_atom(0)
+    assert _a2 == mol.get_atom(1)
 
 
 def test_molecule_from_file():
