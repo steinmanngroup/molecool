@@ -265,6 +265,8 @@ class Molecule(BaseMolecule):
 
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
+        if isinstance(_atom, list):
+            raise ValueError
         self._atoms.append(copy.deepcopy(_atom))
 
 
