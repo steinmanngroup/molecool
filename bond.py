@@ -11,9 +11,12 @@ class Bond(object):
         self._id1 = id1
         self._id2 = id2
         self._bond_order = order # 1 single, 2 double, 3 triple, 4 any, 5 aromatic # i guess?
-        assert self._id1 != -1
-        assert self._id2 != -1
-        assert self._id1 != self._id2, "indices cannot refer to same atom."
+        if self._id1 == -1:
+            raise ValueError("Bond Error: first index must be different from -1")
+        if self._id2 == -1:
+            raise ValueError("Bond Error: second index must be different from -1")
+        if self._id1 == self._id2:
+            raise ValueError("Bond Error: indices cannot refer to same atom")
 
     def shares_atom(self, other):
         """ Returns an atom index if two bonds shares an atom.

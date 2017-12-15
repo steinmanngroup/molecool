@@ -44,6 +44,8 @@ class BaseMolecule(object):
         M.set_name(m.get_name())
         if m.get_num_atoms() > 0:
             M.add_atoms(*m.get_atoms())
+        if m.get_num_atoms() > 1:
+            M.add_bonds(*m.get_bonds())
 
         return M
 
@@ -272,7 +274,8 @@ class Molecule(BaseMolecule):
             Checks are performed upon addition of bonds that it does not
             exist beforehand
         """
-        if not _bond in list(self.get_bonds()):
+        #print("{}.{}({})".format(type(self).__name__, "add_bond", _bond))
+        if not _bond in self._bonds:
             self._bonds.append(_bond)
 
 
@@ -305,6 +308,7 @@ class Molecule(BaseMolecule):
 
 
     def get_bonds(self):
+        #print("{}.{}".format(type(self).__name__, "get_bonds"))
         """ Returns an iterator of all bonds in the molecule
 
             If the bond list has not been calculated before, the bonds are
@@ -333,6 +337,7 @@ class Molecule(BaseMolecule):
 
             It compares atom distances to covalent radii of the atoms.
         """
+        #print("{}.{}".format(type(self).__name__, "percieve_bonds"))
         for iat, atom1 in enumerate(self.get_atoms()):
             for jat, atom2 in enumerate(self.get_atoms()):
                 if iat <= jat: continue
@@ -433,7 +438,24 @@ class OBMolecule(BaseMolecule):
 
 
     def add_bond(self, _bond):
-        raise NotImplementedError
+        #print("{}.{}({})".format(type(self).__name__, "add_bond", _bond))
+        _obatoms = []
+        for _obatom in openbabel.OBMolAtomIter(self._obmol):
+            #_atom = atom.Atom.from_obatom(_obatom)
+            try:
+                atom_index = _bond.get_nbr_atom_idx(_obatom.GetId())
+            except ValueError:
+                pass
+            else:
+                _obatoms.append(_obatom)
+
+        assert len(_obatoms) == 2, "number of atoms in a bond must be 2."
+
+        _obbond = openbabel.OBBond()
+        _obbond.SetBegin(_obatoms[0])
+        _obbond.SetEnd(_obatoms[1])
+        _obbond.SetBondOrder(_bond.get_bond_order())
+        self._obmol.AddBond(_obbond)
 
 
     def get_multiplicity(self):
@@ -482,11 +504,11 @@ class OBMolecule(BaseMolecule):
 
     def get_bonds(self):
         """ Returns an iterator of all bonds in the molecule """
-        self._obmol.ConnectTheDots() # what happens if called more than once?
+        #self._obmol.ConnectTheDots() # what happens if called more than once?
         for _obbond in openbabel.OBMolBondIter(self._obmol):
             iat = _obbond.GetBeginAtom()
             jat = _obbond.GetEndAtom()
-            yield bond.Bond(iat.GetId(), jat.GetId())
+            yield bond.Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
 
 
     def get_angles(self):

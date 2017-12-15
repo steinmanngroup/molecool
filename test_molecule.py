@@ -124,6 +124,22 @@ def test_molecule_copy_openbabel():
     for a1, a2 in zip(ch1, ch2):
         assert a1 == a2
 
+def test_bond_information_copy_correctly():
+    mol1 = Molecule()
+    mol1.add_atom(atom.Atom(6, xyz=[0.0, 0.0, 0.0], idx=0))
+    mol1.add_atom(atom.Atom(6, xyz=[0.0, 0.0, 1.2], idx=1))
+    mol1.add_bond(bond.Bond(0, 1, order=2))
+
+    mol2 = OBMolecule.from_molecule(mol1)
+    for iat, jat in zip(mol1.get_atoms(), mol2.get_atoms()):
+        assert iat == jat
+
+    for ibond, jbond in zip(mol1.get_bonds(), mol2.get_bonds()):
+        assert ibond == jbond
+        assert ibond.get_bond_order() == 2
+        assert jbond.get_bond_order() == 2
+
+
 def test_openbabel_to_molecule_copy():
     _obmol = OBMoleculeFromFilenameAndFormat('HOH.xyz', file_format='xyz')
     mol = load_molecule_from_xyz('HOH.xyz')

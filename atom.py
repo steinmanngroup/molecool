@@ -76,7 +76,7 @@ class Atom(object):
             Arguments:
             value -- the integer formal charge
         """
-        if not isinstance(int, value):
+        if not isinstance(value, int):
             raise TypeError
 
         self._fcharge = value
@@ -91,7 +91,7 @@ class Atom(object):
             Arguments:
             value -- the integer index
         """
-        if not isinstance(int, value):
+        if not isinstance(value, int):
             raise TypeError
         self._idx = value
 
@@ -130,7 +130,7 @@ class Atom(object):
             Arguments:
             value -- the coordination number
         """
-        if not isinstance(int, value):
+        if not isinstance(value, int):
             raise TypeError
 
         max_coordination = util.COORDINATION[self._z]
