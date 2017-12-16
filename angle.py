@@ -1,3 +1,5 @@
+from bond import Bond
+
 class Angle(object):
     """ An angle between three Atom objects.
 
@@ -21,11 +23,34 @@ class Angle(object):
         self._vertex = vertex
         self._id1 = id1
         self._id2 = id2
+        s = set([vertex, id1, id2])
+        if len(s) < 3:
+            raise ValueError("Indices cannot be the same. Initialized as {}".format(repr(self)))
+        if vertex < 0:
+            raise ValueError("Argument vertex supplied negative value.")
+        if id1 < 0:
+            raise ValueError("Argument id1 supplied negative value.")
+        if id2 < 0:
+            raise ValueError("Argument id2 supplied negative value.")
 
     def __eq__(self, other):
-        this = set([self._vertex, self._id1, self._id2])
-        that = set([other._vertex, other._id1, other._id2])
-        return len(this - that) == 0
+        if self._vertex != other._vertex:
+            return False
+
+        b1_self = Bond(self._vertex, self._id1)
+        b2_self = Bond(self._vertex, self._id2)
+        b1_other = Bond(other._vertex, other._id1)
+        b2_other = Bond(other._vertex, other._id2)
+
+
+
+        print("Bond self :", b1_self, b2_self)
+        print("Bond other:", b1_other, b2_other)
+        value1 = (b1_self == b1_other) or (b1_self == b2_other)
+        value2 = (b2_self == b1_other) or (b2_self == b2_other)
+
+        print("Values:", value1, value2)
+        return value1 and value2
 
     def __repr__(self):
-        return("Angle({0:d},{1:d},{2:d})".format(self._vertex, self._id1, self._id2))
+        return("Angle({0:d}, {1:d}, {2:d})".format(self._vertex, self._id1, self._id2))

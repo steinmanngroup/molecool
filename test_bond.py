@@ -7,3 +7,6 @@ def test_bond():
 
     b = Bond(0, 1)
     assert b.get_bond_order() == 1
+
+    b1 = Bond(1, 0)
+    assert b == b1

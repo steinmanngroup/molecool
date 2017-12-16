@@ -1,6 +1,5 @@
 import numpy
 
-
 class Bond(object):
     """ A bond between two Atom objects.
 

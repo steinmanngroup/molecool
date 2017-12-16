@@ -149,20 +149,15 @@ class Atom(object):
             We test the following:
                 * do the atoms have the same nuclear charge?
                 * are they placed ontop of each other
-                * Do they have the same internal ID(*)
-
-            (*) The last requirement is perhaps a bit too strict
-            because it checks that the atoms are exactly equal.
         """
         if self.get_nuclear_charge() != other.get_nuclear_charge():
             return False
-        EPS=1.0e-6
+
+        EPS = 1.0e-6
         dr = self.get_coordinate() - other.get_coordinate()
         R2 = dr.dot(dr)
 
         return numpy.sqrt(R2) < EPS
-
-        #return self.getIdx() == other.getIdx() and numpy.sqrt(R2) < EPS
 
     def __repr__(self):
         return "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])".format(self.get_nuclear_charge(), self.get_coordinate(), self.get_idx())
