@@ -37,19 +37,16 @@ class Angle(object):
         if self._vertex != other._vertex:
             return False
 
+        # make bonds extending from the vertex
         b1_self = Bond(self._vertex, self._id1)
         b2_self = Bond(self._vertex, self._id2)
         b1_other = Bond(other._vertex, other._id1)
         b2_other = Bond(other._vertex, other._id2)
 
-
-
-        print("Bond self :", b1_self, b2_self)
-        print("Bond other:", b1_other, b2_other)
+        # and compare bonds
         value1 = (b1_self == b1_other) or (b1_self == b2_other)
         value2 = (b2_self == b1_other) or (b2_self == b2_other)
 
-        print("Values:", value1, value2)
         return value1 and value2
 
     def __repr__(self):
