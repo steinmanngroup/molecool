@@ -232,6 +232,17 @@ class BaseMolecule(object):
                 yield _atom
 
 
+    def iter_bond_atoms(self, bond):
+        """ Iterates over all atoms in a bond
+
+            Arguments:
+            bond -- the bond to iterate over
+        """
+        for _atom in self.get_atoms():
+            if _atom.get_idx() == bond._id1 or _atom.get_idx() == bond._id2:
+                yield _atom
+
+
     def find_children(self, atom):
         """ Finds all atoms in the molecular graph as the supplied atom
 
