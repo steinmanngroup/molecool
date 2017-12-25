@@ -124,7 +124,7 @@ class Smiles(object):
         while idx_string < len(s):
             if self._debug:
                 print("\nITER={} s[idx]={}".format(idx_string, s[idx_string]))
-	    havoc_counter += 1
+            havoc_counter += 1
             if havoc_counter > 1000: break # just to make sure the fucking thing does not run havoc
 
             if s[idx_string] == "%":
