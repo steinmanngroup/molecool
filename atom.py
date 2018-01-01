@@ -17,6 +17,7 @@ class Atom(object):
           * covalent radius
           * coordination number
           * label
+          * hybridization (sp, sp2 or sp3)
 
         Arguments:
         Z -- nuclear charge of atom. This argument is mandatory.
@@ -37,7 +38,9 @@ class Atom(object):
         self._vdw_radius = kwargs.get('vwdradius', util.VDWRADII[Z])
         self._cov_radius = kwargs.get('covradius', util.COVALENTRADII[Z])
         self._coordination = kwargs.get('coordination', util.COORDINATION[Z])
+        self._hybridization = kwargs.get('hybridization', 0)
         self._label = util.Z2LABEL[Z]
+
 
     @classmethod
     def from_atom(cls, other):
@@ -45,8 +48,10 @@ class Atom(object):
                    mass=other.get_mass(),
                    fcharge=other.get_formal_charge(),
                    xyz=other.get_coordinate(),
-                   idx=other.get_idx())
+                   idx=other.get_idx(),
+                   hybridization=other.get_hybridization())
         return atom
+
 
     @classmethod
     def from_obatom(cls, _obatom):
@@ -55,20 +60,25 @@ class Atom(object):
         _atom = cls(_obatom.GetAtomicNum(),
                     xyz=[x, y, z],
                     idx=_obatom.GetId(), # not using internal index (GetIdx) from openbabel because it gets remapped
-                    fcharge=_obatom.GetFormalCharge())
+                    fcharge=_obatom.GetFormalCharge(),
+                    hybridization=_obatom.GetHyb())
         return _atom
+
 
     def get_mass(self):
         """ Returns the mass of the atom """
         return self._mass
 
+
     def get_nuclear_charge(self):
         """ Returns the nuclear charge of the atom """
         return self._z
 
+
     def get_formal_charge(self):
         """ Returns the formal charge of the atom """
         return self._fcharge
+
 
     def set_formal_charge(self, value):
         """ Sets the integer formal charge of the atom
@@ -81,9 +91,11 @@ class Atom(object):
 
         self._fcharge = value
 
+
     def get_idx(self):
         """ Returns the internal index of the atom """
         return self._idx
+
 
     def set_idx(self, value):
         """ Sets the internal index of the atom
@@ -95,13 +107,16 @@ class Atom(object):
             raise TypeError
         self._idx = value
 
+
     def get_label(self):
         """ Returns the human readable atomic label """
         return self._label
 
+
     def get_coordinate(self):
         """ returns the 3D coordinate of the atom """
         return self._c
+
 
     def set_coordinate(self, value):
         """ Sets the 3D coordinate of the atom
@@ -116,13 +131,16 @@ class Atom(object):
             raise ValueError("Dimensions of data do not match. Expected 3 but got {}".format(n))
         self._c = value
 
+
     def get_vdw_radius(self):
         """ Returns the Van der Waal radius of the atom """
         return self._vdw_radius
 
+
     def get_covalent_radius(self):
         """ Returns the covalent radius of the atom """
         return self._cov_radius
+
 
     def set_coordination(self, value):
         """ Sets the coordination number
@@ -139,9 +157,40 @@ class Atom(object):
 
         self._coordination = value
 
+
     def get_coordination(self):
         """ Returns the coordination number """
         return self._coordination
+
+
+    def set_hybridization(self, value):
+        """ Sets the hybridization of the atom
+
+            typical values are:
+               1 = sp
+               2 = sp2
+               3 = sp3
+
+            Arguments:
+            value -- the sp hybridization of the atom
+        """
+        if not isinstance(value, int):
+            raise TypeError("Argument 'value' must be of type integer.")
+        if value < 1:
+            raise ValueError("Hybridization equal to or below zero not valid.")
+
+        self._hybridization = value
+
+    def get_hybridization(self):
+        """ Returns the hybridization of the atom
+
+            Typical values return are:
+               1 = sp
+               2 = sp2
+               3 = sp3
+        """
+        return self._hybridization
+
 
     def __eq__(self, other):
         """ Tests that two atoms are equal using various measures
@@ -149,6 +198,10 @@ class Atom(object):
             We test the following:
                 * do the atoms have the same nuclear charge?
                 * are they placed ontop of each other
+
+            Other things that could be tested for in the future or
+            through another method implying stronger equivalence:
+                * hybridization
         """
         if self.get_nuclear_charge() != other.get_nuclear_charge():
             return False
@@ -158,6 +211,7 @@ class Atom(object):
         R2 = dr.dot(dr)
 
         return numpy.sqrt(R2) < EPS
+
 
     def __repr__(self):
         return "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])".format(self.get_nuclear_charge(), self.get_coordinate(), self.get_idx())

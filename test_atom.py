@@ -5,6 +5,7 @@ import numpy
 
 from atom import Atom
 
+
 def test_atom_basic():
     a = Atom(1)
     assert a.get_nuclear_charge() == 1
@@ -14,6 +15,7 @@ def test_atom_basic():
 
     with pytest.raises(TypeError):
         a.set_formal_charge(1.0)
+
 
 def test_atom_coordinates():
     a = Atom(8, xyz=[0.0, 0.0, 2.0])
@@ -34,6 +36,7 @@ def test_atom_coordinates():
     c = a.get_coordinate()
     assert c.dot(c) == 1.0
 
+
 def test_atom_coordination():
     a = Atom(6)
     assert a.get_coordination() == 4 
@@ -46,8 +49,15 @@ def test_atom_coordination():
     a.set_coordination(3)
     assert a.get_coordination() == 3
 
+def test_atom_hybridization():
+    a = Atom(6)
+    assert a.get_hybridization() == 0 # unassigned
+    a.set_hybridization(3)
+    assert a.get_hybridization() == 3 # assigned (here sp3 hybridized)
+
+
 def test_atom_copy():
-    a1 = Atom(1, xyz=[0.0, 0.0, 1.0], idx=1)
+    a1 = Atom(1, xyz=[0.0, 0.0, 1.0], idx=1, hybridization=3)
     a2 = Atom.from_atom(a1)
 
     assert a1 == a2
