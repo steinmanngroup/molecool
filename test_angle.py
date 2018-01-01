@@ -1,6 +1,8 @@
 import pytest
 
 from angle import Angle
+
+
 def test_angle():
     with pytest.raises(ValueError):
         Angle(0, 0, 1)
