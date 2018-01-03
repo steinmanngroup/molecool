@@ -489,6 +489,16 @@ class OBMolecule(BaseMolecule):
         return self._obmol.GetTotalSpinMultiplicity()
 
 
+    def set_multiplicity(self, value):
+        """ Sets the multiplicity of the molecule
+
+            Arguments:
+            value -- the integer charge of the molecule
+        """
+        if not isinstance(value, int):
+            raise ValueError("Argument 'value' must be of type integer")
+        self._obmol.SetTotalSpinMultiplicity(value)
+
     def get_charge(self):
         """ Returns the integer charge of the molecule """
         return self._obmol.GetTotalCharge()
