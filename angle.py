@@ -33,6 +33,21 @@ class Angle(object):
         if id2 < 0:
             raise ValueError("Argument id2 supplied negative value.")
 
+    def __getitem__(self, key):
+        if not isinstance(key, int):
+            raise TypeError("provided key must be integer.")
+
+        if key < 0:
+            raise IndexError("negative indices not supported")
+
+        if key > 2:
+            raise IndexError("Angle only has three indices.")
+
+        # kinda bad that Angle is not derived from a simple list
+        if key == 0: return self._vertex
+        if key == 1: return self._id1
+        if key == 2: return self._id2
+
     def __eq__(self, other):
         if self._vertex != other._vertex:
             return False
