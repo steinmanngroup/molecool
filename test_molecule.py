@@ -21,6 +21,7 @@ def load_molecule_from_xyz(filename):
     return mol
 
 def test_basic_molecule():
+    """ simple tests for the Molecule class """
     mol = Molecule()
     assert mol.get_num_atoms() == 0
     assert mol.get_num_atoms() == len(mol)
@@ -34,6 +35,31 @@ def test_basic_molecule():
 
     mol.set_multiplicity(1)
     assert mol.get_multiplicity() == 1
+
+    # test that adding something that is not an atom errors out
+    with pytest.raises(TypeError):
+        mol.add_atom(1)
+
+
+def test_basic_obmolecule():
+    """ simple tests for the OBMolecule class """
+    mol = OBMolecule()
+    assert mol.get_num_atoms() == 0
+    assert mol.get_num_atoms() == len(mol)
+
+    # testing basic stuff
+    mol.set_name("test")
+    assert mol.get_name() == "test"
+
+    mol.set_charge(-5)
+    assert mol.get_charge() == -5
+
+    mol.set_multiplicity(1)
+    assert mol.get_multiplicity() == 1
+
+    # test that adding something that is not an atom errors out
+    with pytest.raises(TypeError):
+        mol.add_atom(1)
 
 
 def test_molecule_add_atoms_and_bonds():
@@ -63,6 +89,32 @@ def test_molecule_add_atoms_and_bonds():
     assert _a1 == mol.get_atom(0)
     assert _a2 == mol.get_atom(1)
 
+def test_obmolecule_add_atoms_and_bonds():
+    mol = OBMolecule()
+    _a1 = atom.Atom(1, xyz=[0.0, 0.0, 0.0], idx=0)
+    _a2 = atom.Atom(1, xyz=[0.0, 0.0, 0.9], idx=1)
+    mol.add_atoms(_a1, _a2)
+    assert len(mol) == 2
+    _b1 = bond.Bond(0, 1)
+    mol.add_bonds(_b1)
+    assert len(list(mol.get_bonds())) == 1
+
+    # make sure no bond information is stored twice
+    _b2 = bond.Bond(1, 0)
+    mol.add_bond(_b2)
+    assert len(list(mol.get_bonds())) == 1
+
+    x,y,z = mol.get_center_of_mass()
+    assert abs(z-0.45) < 1.0e-6
+
+    with pytest.raises(IndexError):
+        mol.get_atom(-1) # cannot have negative indices
+
+    with pytest.raises(IndexError):
+        mol.get_atom(100) # cannot choose atom out of range (0, 1)
+
+    assert _a1 == mol.get_atom(0)
+    assert _a2 == mol.get_atom(1)
 
 def test_molecule_from_file():
     # test with a molecule
@@ -166,6 +218,7 @@ def test_openbabel_to_molecule_copy():
     assert len(ch1) == len(ch2)
     for a1, a2 in zip(ch1, ch2):
         assert a1 == a2
+
 
 def OBMoleculeFromFilenameAndFormat(filename, file_format='pdb'):
     """ Loads a molecule into an OpenBabel molecule.

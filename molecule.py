@@ -61,7 +61,7 @@ class BaseMolecule(object):
     #
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def add_atoms(self, *args):
@@ -72,7 +72,7 @@ class BaseMolecule(object):
 
     def add_bond(self, _bond):
         """ Adds a bond to the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def add_bonds(self, *args):
@@ -85,7 +85,7 @@ class BaseMolecule(object):
     #
     def get_num_atoms(self):
         """ Returns the number of atoms in the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def get_atom(self, idx):
@@ -97,22 +97,22 @@ class BaseMolecule(object):
             Returns:
             an atom with the specified index
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def get_atoms(self):
         """ Returns an iterator of all atoms in the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def get_bonds(self):
         """ Returns an iterator of all bonds in the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def get_angles(self):
         """ Returns an iterator of all angles in the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
     #
     # getters and setters for simple properties
@@ -168,7 +168,8 @@ class BaseMolecule(object):
     #
     def percieve_bonds(self):
         """ Attempts to percieve covalent bonds in the molecule """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
+
 
     #
     # specialized getters and setters to extract information stored
@@ -192,7 +193,7 @@ class BaseMolecule(object):
             Arguments:
             value -- coordinates to store. Must be numpy array.
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
     def get_center_of_mass(self):
@@ -232,6 +233,16 @@ class BaseMolecule(object):
                 yield _atom
 
 
+    def iter_atom_angles(self, atom):
+        """ Iterates over all angles where atom is the vertex
+
+            Arguments:
+            atom -- the atom to use as the vertex in all angles
+        """
+        for angle in self.get_angles():
+            if angle[0] == atom.get_idx():
+                yield angle
+
     def iter_bond_atoms(self, bond):
         """ Iterates over all atoms in a bond
 
@@ -252,7 +263,7 @@ class BaseMolecule(object):
             Returns:
             List of atoms sorted according to their internal index
         """
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
 
 class Molecule(BaseMolecule):
@@ -276,8 +287,8 @@ class Molecule(BaseMolecule):
 
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
-        if isinstance(_atom, list):
-            raise ValueError
+        if not isinstance(_atom, atom.Atom):
+            raise TypeError
         self._atoms.append(copy.deepcopy(_atom))
 
 
@@ -441,6 +452,8 @@ class OBMolecule(BaseMolecule):
 
             Note: This will surely break at some point for .pdb files etc.
         """
+        if not isinstance(_atom, atom.Atom):
+            raise TypeError
         _obatom = openbabel.OBAtom()
         _obatom.SetAtomicNum(_atom.get_nuclear_charge())
         x, y, z = _atom.get_coordinate()
@@ -479,6 +492,17 @@ class OBMolecule(BaseMolecule):
     def get_charge(self):
         """ Returns the integer charge of the molecule """
         return self._obmol.GetTotalCharge()
+
+
+    def set_charge(self, value):
+        """ Sets the integer charge of the molecule
+
+            Arguments:
+            value -- the integer charge of the molecule
+        """
+        if not isinstance(value, int):
+            raise ValueError("Argument 'value' must be of type integer")
+        self._obmol.SetTotalCharge(value)
 
 
     def get_num_atoms(self):
