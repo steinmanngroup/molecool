@@ -174,19 +174,20 @@ def test_rings():
     #assert False
 
 
-@pytest.mark.skip(reason="Atom indices are off if nested more than once in a row.")
 def test_multiple_chains():
-    # explicit methane
-    SS = Smiles("C([H])([H])([H])[H]", debug=True)
-    assert False
 
     SS = Smiles("C(C)(C)")
     assert len(SS._mol) == 3
     _bonds = list(SS._mol.get_bonds())
     assert len(_bonds) == 2
-    print(list(SS._mol.get_atoms()))
-    print(list(SS._mol.get_bonds()))
-    assert False
+
+    # explicit methane
+    SS = Smiles("C([H])([H])([H])[H]")
+    assert len(SS._mol) == 5
+    _bonds = list(SS._mol.get_bonds())
+    assert len(_bonds) == 4
+    for idx, bond in enumerate(_bonds, start=1):
+        assert idx == bond.get_nbr_atom_idx(0)
 
 def test_branched_bracket_atoms():
     # the following two should provide exact same results

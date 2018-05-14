@@ -86,6 +86,8 @@ class Smiles(object):
 
         if self._debug:
             print("------------------------------")
+            print(s)
+            print("------------------------------")
         self.parse_smiles(s, None)
 
         # now we do some checks
@@ -96,12 +98,13 @@ class Smiles(object):
         if self._debug:
             print("------------------------------")
 
-    def parse_smiles(self, s, p_atom):
+    def parse_smiles(self, s, p_atom, branch_index_offset=0):
         """ Parses (part of) a SMILES string
 
             Arguments:
             s -- the smiles string to parse
-            p_atom -- the previous atom, if any, for bonding. Otherwise False.
+            p_atom -- the previous atom, if any, for bonding. Otherwise None.
+            branch_index_offset -- an offset used when branching to update indices correctly.
 
             Returns:
             an updated atom index of the next atom
@@ -119,7 +122,7 @@ class Smiles(object):
         havoc_counter = 0
         atom_index = 0
         if p_atom is not None:
-            atom_index = p_atom.get_idx() + 1
+            atom_index = p_atom.get_idx() + 1 + branch_index_offset
 
         while idx_string < len(s):
             if self._debug:
@@ -152,8 +155,9 @@ class Smiles(object):
                 if l_bracket_close == -1:
                     raise BranchBracketError
                 else:
-                    #print "BRANCH:", l_bracket_open, l_bracket_close
-                    atom_index = self.parse_smiles(s[l_bracket_open+1:l_bracket_close], p_prev_atom)
+                    #print("parse branch start. indices:", l_bracket_open, l_bracket_close)
+                    atom_index = self.parse_smiles(s[l_bracket_open+1:l_bracket_close], p_prev_atom, atom_index-1)
+                    #print("parse branch stop. atom_index", atom_index)
                     idx_string = l_bracket_close + 1
                     continue
 
@@ -339,7 +343,7 @@ class Smiles(object):
 
 
 if __name__ == '__main__':
-    SS = Smiles("C([NH3+])C", debug=True)
+    SS = Smiles("C([H])([H])[H]", debug=False)
+    print(list(SS._mol.get_atoms()))
     #print(list(SS._mol.get_atoms()))
-    #print(list(SS._mol.get_bonds()))
-    SS.parse_atom("Z")
+    print(list(SS._mol.get_bonds()))
