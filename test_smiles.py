@@ -13,59 +13,59 @@ def test_smiles_parse_atoms():
     assert len(list(SS._mol.get_bonds())) == 0
 
     with pytest.raises(ValueError):
-        SS.parse_atom("")
+        smiles.parse_atom("")
 
     with pytest.raises(smiles.IllegalAtomError):
-        SS.parse_atom("Z")
+        smiles.parse_atom("Z")
 
-    _atoms, _bonds, tmp = SS.parse_atom("H")
+    _atoms, _bonds, tmp = smiles.parse_atom("H")
     assert len(_atoms) == 1
     assert len(_bonds) == 0
     assert _atoms[0].get_nuclear_charge() == 1
     assert _atoms[0].get_formal_charge() == 0
 
-    _atoms, _bonds, tmp = SS.parse_atom("Cl")
+    _atoms, _bonds, tmp = smiles.parse_atom("Cl")
     assert len(_atoms) == 1
     assert len(_bonds) == 0
     assert _atoms[0].get_nuclear_charge() == 17
     assert _atoms[0].get_formal_charge() == 0
 
-    _atoms, _bonds, tmp = SS.parse_atom("CH4", 0)
+    _atoms, _bonds, tmp = smiles.parse_atom("CH4", 0)
     assert len(_atoms) == 5
     assert len(_bonds) == 4
 
-    _atoms, _bonds, tmp = SS.parse_atom("H+")
+    _atoms, _bonds, tmp = smiles.parse_atom("H+")
     assert len(_atoms) == 1
     assert len(_bonds) == 0
     assert _atoms[0].get_nuclear_charge() == 1
     assert _atoms[0].get_formal_charge() == 1
 
-    _atoms, _bonds, tmp = SS.parse_atom("O-")
+    _atoms, _bonds, tmp = smiles.parse_atom("O-")
     assert _atoms[0].get_nuclear_charge() == 8
     assert _atoms[0].get_formal_charge() == -1
 
-    _atoms, _bonds, tmp = SS.parse_atom("Fe+2")
+    _atoms, _bonds, tmp = smiles.parse_atom("Fe+2")
     assert _atoms[0].get_nuclear_charge() == 26
     assert _atoms[0].get_formal_charge() == 2
 
-    _atoms, _bonds, tmp = SS.parse_atom("Fe++")
+    _atoms, _bonds, tmp = smiles.parse_atom("Fe++")
     assert _atoms[0].get_nuclear_charge() == 26
     assert _atoms[0].get_formal_charge() == 2
 
-    _atoms, _bonds, tmp = SS.parse_atom("OH", 0)
+    _atoms, _bonds, tmp = smiles.parse_atom("OH", 0)
     assert len(_atoms) == 2
     assert len(_bonds) == 1
     assert _atoms[0].get_nuclear_charge() == 8
     assert _atoms[0].get_formal_charge() == 0
 
-    _atoms, _bonds, tmp = SS.parse_atom("OH-", 0)
+    _atoms, _bonds, tmp = smiles.parse_atom("OH-", 0)
     assert len(_atoms) == 2
     assert len(_bonds) == 1
     assert _atoms[0].get_nuclear_charge() == 8
     assert _atoms[0].get_formal_charge() == -1
 
     with pytest.raises(smiles.IllegalAtomError):
-        SS.parse_atom("=N")
+        smiles.parse_atom("=N")
 
 def test_atoms():
     SS = Smiles("F")

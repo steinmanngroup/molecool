@@ -126,7 +126,7 @@ def test_molecule_from_file():
 
 
 def test_molecule_copy():
-    mol = load_molecule_from_xyz('CH3.xyz')
+    mol = load_molecule_from_xyz('CH4.xyz')
     mol2 = Molecule.from_molecule(mol)
     assert mol.get_num_atoms() == mol2.get_num_atoms()
     assert mol.get_name() == mol2.get_name()
@@ -152,7 +152,7 @@ def test_molecule_copy():
 
 def test_molecule_copy_openbabel():
     """ tests if copy to openbabel molecule gives same result as regular molecule """
-    mol = load_molecule_from_xyz('CH3.xyz')
+    mol = load_molecule_from_xyz('CH4.xyz')
     mol2 = OBMolecule.from_molecule(mol)
     assert mol.get_num_atoms() == mol2.get_num_atoms()
     assert mol.get_name() == mol2.get_name()

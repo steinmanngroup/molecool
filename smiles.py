@@ -48,12 +48,12 @@ def count_items_exclusive(s, values):
 class Smiles(object):
     """ The molecool SMILES engine
 
-        Typical usage is
+        Typical usage is::
 
         >>> S = Smiles("CC")
 
         which will generate a molecule (sans 3D geometry)
-        like the following
+        like the following::
 
            Atom(6, idx=0) Bond(0, 1) Atom(6, idx=1)
 
@@ -69,8 +69,12 @@ class Smiles(object):
     def __init__(self, s, **kwargs):
         """ Initializes the SMILES engine
 
-            arguments:
-            s -- the smiles string
+            :param s: the smiles string
+            :type s: str
+            :param kwargs: keyword arguments
+            :type kwargs: dict
+
+            :rtype: Smiles
 
             keyword arguments:
             debug -- enable debug printing. default is False.
@@ -97,6 +101,7 @@ class Smiles(object):
 
         if self._debug:
             print("------------------------------")
+
 
     def parse_smiles(self, s, p_atom, branch_index_offset=0):
         """ Parses (part of) a SMILES string
@@ -174,7 +179,7 @@ class Smiles(object):
                     l_atom_close = idx_string
                     if self._debug:
                         print("  parse bracket atom")
-                    _atoms, _bonds, new_atom_index = self.parse_atom(s[l_atom_open+1:l_atom_close], atom_index)
+                    _atoms, _bonds, new_atom_index = parse_atom(s[l_atom_open+1:l_atom_close], atom_index)
 
                     if p_prev_atom is not None:
                         if self._debug:
@@ -206,10 +211,10 @@ class Smiles(object):
                     if self._debug:
                         print("  parse atom")
                     if s[idx_string:idx_string+2] in ["Br", "Cl"]:
-                        _atoms, _bonds, _tmp = self.parse_atom(s[idx_string:idx_string+2], atom_index)
+                        _atoms, _bonds, _tmp = parse_atom(s[idx_string:idx_string+2], atom_index)
                         idx_string += 1
                     else:
-                        _atoms, _bonds, _tmp = self.parse_atom(s[idx_string], atom_index)
+                        _atoms, _bonds, _tmp = parse_atom(s[idx_string], atom_index)
 
                     # check for rings
                     try:
@@ -249,98 +254,100 @@ class Smiles(object):
         return atom_index
 
 
-    def parse_atom(self, s, atom_index=-1):
-        """ Parses an atom in a string s
-
-            Arguments:
-            s -- the string to parse
-            atom_index -- the atom_index counter for continous. Default is -1
-
-            Returns:
-            a list of atoms, a list of bonds and an updated atom_index for the next atom
-        """
-        if len(s) == 0:
-            raise ValueError("parse_atom: argument 's' cannot have length 0.")
-
-        if self._debug:
-            print("  Smiles.parse_atom: '{}'".format(s))
-
-        Z = 0
-        if len(s) == 1:
-            try:
-                Z = LABEL2Z[s]
-            except KeyError:
-                raise IllegalAtomError("The atom '{}' is invalid.".format(s))
-            else:
-               # just return the atom
-               return [Atom(Z, idx=atom_index)], [], atom_index +1
-
-        idx_atom_end = -1 # atomic label from 0:idx_atom_end
-
-        # find indices for hydrogens + counts
-        n_hydrogens = 0
-        idx_hydrogen = s.find("H")
-        if idx_hydrogen > 0: # ignore atomic hydrogen (or proton)
-            idx_atom_end = idx_hydrogen
-
-            n_hydrogens = 1
-            idx_hydrogen_count = idx_hydrogen + 1
-            try:
-                n_hydrogens = int(s[idx_hydrogen_count])
-            except IndexError: # ran past the end of string
-                pass
-            except ValueError: # hit something other than a number
-                pass
-
-
-        idx_cat = s.find("+")
-        idx_ani = s.find("-")
-        idx_charge = max(idx_cat, idx_ani)
-        charge = 0
-        if idx_cat > 0:
-            charge = 1
-        elif idx_ani > 0:
-            charge = -1
-
-
-        if idx_charge > 0:
-            if idx_hydrogen > 0:
-                idx_atom_end = min(idx_charge, idx_hydrogen)
-            else:
-                idx_atom_end = idx_charge
-
-            try:
-                charge = int(s[idx_charge+1])
-            except IndexError: # ran past the end of string
-                pass
-            except ValueError: # hit another + or -
-                charge = charge * sum(count_items_exclusive(s, ["+", "-"]))
-
-        if idx_atom_end == -1:
-            idx_atom_end = len(s)
-
-
-        if self._debug:
-            print("  n_hydrogens :", n_hydrogens)
-            print("  n_charge    :", charge)
-            print("  base atom   : s[0:{}] = {}".format(idx_atom_end, s[0:idx_atom_end]))
-
-        try:
-            Z = LABEL2Z[s[0:idx_atom_end]]
-        except KeyError:
-            raise IllegalAtomError("The atom '{}' is invalid.".format(s[0:idx_atom_end]))
-        atoms = [Atom(Z, idx=atom_index, fcharge=charge)]
-        bonds = []
-        for i in range(n_hydrogens):
-            atoms.append(Atom(1, idx=atom_index+1+i))
-            bonds.append(Bond(atom_index, atom_index+1+i))
-
-        return atoms, bonds, atom_index+1+n_hydrogens
-
-
     def get_molecule(self):
         return self._mol
 
+
+def parse_atom(s, atom_index=-1, debug=False):
+    """ Parses an atom in a string s
+
+        :param s: The string to parse
+        :type s: str
+        :param atom_index: the atom_index counter for continous parsing. Default is -1.
+        :type atom_index: int
+
+        :return: a list of atoms, a list of bonds and an updated atom_index for the next atom
+        :rtype: list
+    """
+    if len(s) == 0:
+        raise ValueError("parse_atom: argument 's' cannot have length 0.")
+
+    if debug:
+        print("  Smiles.parse_atom: '{}'".format(s))
+
+    Z = 0
+    if len(s) == 1:
+        try:
+            Z = LABEL2Z[s]
+        except KeyError:
+            raise IllegalAtomError("The atom '{}' is invalid.".format(s))
+        else:
+           # just return the atom
+           return [Atom(Z, idx=atom_index)], [], atom_index +1
+
+    idx_atom_end = -1 # atomic label from 0:idx_atom_end
+
+    # find indices for hydrogens + counts
+    n_hydrogens = 0
+    idx_hydrogen = s.find("H")
+    if idx_hydrogen > 0: # ignore atomic hydrogen (or proton)
+        idx_atom_end = idx_hydrogen
+
+        n_hydrogens = 1
+        idx_hydrogen_count = idx_hydrogen + 1
+        try:
+            n_hydrogens = int(s[idx_hydrogen_count])
+        except IndexError: # ran past the end of string
+            pass
+        except ValueError: # hit something other than a number
+            pass
+
+
+
+    idx_cat = s.find("+")
+    idx_ani = s.find("-")
+    idx_charge = max(idx_cat, idx_ani)
+    charge = 0
+    if idx_cat > 0:
+        charge = 1
+    elif idx_ani > 0:
+        charge = -1
+
+
+    if idx_charge > 0:
+        if idx_hydrogen > 0:
+            idx_atom_end = min(idx_charge, idx_hydrogen)
+        else:
+            idx_atom_end = idx_charge
+
+        try:
+            charge = int(s[idx_charge+1])
+        except IndexError: # ran past the end of string
+            pass
+        except ValueError: # hit another + or -
+            charge = charge * sum(count_items_exclusive(s, ["+", "-"]))
+
+    if idx_atom_end == -1:
+        idx_atom_end = len(s)
+
+
+    if debug:
+        print("  n_hydrogens :", n_hydrogens)
+        print("  n_charge    :", charge)
+        print("  base atom   : s[0:{}] = {}".format(idx_atom_end, s[0:idx_atom_end]))
+
+    try:
+        Z = LABEL2Z[s[0:idx_atom_end]]
+    except KeyError:
+        raise IllegalAtomError("The atom '{}' is invalid.".format(s[0:idx_atom_end]))
+
+    atoms = [Atom(Z, idx=atom_index, fcharge=charge)]
+    bonds = []
+    for i in range(n_hydrogens):
+        atoms.append(Atom(1, idx=atom_index+1+i))
+        bonds.append(Bond(atom_index, atom_index+1+i))
+
+    return atoms, bonds, atom_index+1+n_hydrogens
 
 if __name__ == '__main__':
     SS = Smiles("C([H])([H])[H]", debug=False)

@@ -5,7 +5,13 @@ import atom
 import bond
 import angle
 
-import openbabel
+__has_openbabel__ = False
+try:
+    import openbabel
+except ImportError:
+    pass
+else:
+    __has_openbabel__ = True
 
 class BaseMolecule(object):
     """ A molecule
@@ -37,7 +43,13 @@ class BaseMolecule(object):
     #
     @classmethod
     def from_molecule(cls, m):
-        """ Loads a molecule from another molecule by copying over all data """
+        """ Loads a molecule from another molecule by copying all data
+
+            :param cls: class
+            :type cls: BaseMolecule
+            :param m: molecule
+            :type m: BaseMolecule
+        """
         M = cls()
         M.set_charge(m.get_charge())
         M.set_multiplicity(m.get_multiplicity())
@@ -53,14 +65,21 @@ class BaseMolecule(object):
     # built-in modifications
     #
     def __len__(self):
-        """ Returns the number of atoms in the molecule """
+        """ Returns the number of atoms in the molecule
+
+            :rtype: int
+        """
         return self.get_num_atoms()
 
     #
     # methods to add information to the molecule
     #
     def add_atom(self, _atom):
-        """ Adds an atom to the molecule """
+        """ Adds an atom to the molecule
+
+            :param _atom: the atom to add to the molecule
+            :type _atom: atom.Atom
+        """
         raise NotImplementedError # pragma: no cover
 
 
@@ -257,11 +276,10 @@ class BaseMolecule(object):
     def find_children(self, atom):
         """ Finds all atoms in the molecular graph as the supplied atom
 
-            Arguments:
-            atom -- the atom whose neighbours to get
+            :param atom: the atom.Atom whose neighbours to get
+            :type atom: atom.Atom
 
-            Returns:
-            List of atoms sorted according to their internal index
+            :rtype: list
         """
         raise NotImplementedError # pragma: no cover
 
@@ -295,6 +313,9 @@ class Molecule(BaseMolecule):
     def add_bond(self, _bond):
         """ Adds a bond to the molecule
 
+            :param _bond: The bond.Bond to add
+            :type _bond: bond.Bond
+
             Checks are performed upon addition of bonds that it does not
             exist beforehand
         """
@@ -304,18 +325,19 @@ class Molecule(BaseMolecule):
 
 
     def get_num_atoms(self):
-        """ Returns the number of atoms in the molecule """
+        """ Returns the number of atoms in the molecule
+
+           :rtype: int
+        """
         return len(self._atoms)
 
 
     def get_atom(self, idx):
         """ Returns an atom based on its index
 
-            Arguments:
-            idx -- the index (from 0 to getNumAtoms() -1)
-
-            Returns:
-            an atom with the specified index
+            :param idx: the index (from 0 to get_num_atoms() -1)
+            :type idx: int
+            :rtype: atom.Atom
         """
         n_atoms = self.get_num_atoms()
         if idx < 0:
@@ -420,186 +442,191 @@ class Molecule(BaseMolecule):
 
         return sorted(old_atoms, key=lambda _atom: _atom.get_idx())
 
-
 class OBMolecule(BaseMolecule):
-    """ A molecule
-
-        A molecule is a collection of atoms and provides methods to
-        extract or manipulate atoms.
-
-        This is an implementation of the Molecule class that directly
-        supports openbabel as the underlying engine.
-
-        Internally, all atomic coordinates are stored in Angstrom
-        and this convention should be adhered to when attempting to
-        update the coordinates.
-    """
     def __init__(self, fromOBMol=None):
-        """ Initializes an empty molecule """
-        BaseMolecule.__init__(self)
-        if fromOBMol is not None:
-            self._obmol = openbabel.OBMol(fromOBMol)
-            self.set_name(fromOBMol.GetTitle())
-        else:
-            self._obmol = openbabel.OBMol()
+        raise NameError("Could not find OpenBabel.")
 
+if __has_openbabel__:
 
-    def add_atom(self, _atom):
-        """ Adds an atom to the molecule
+    class OBMolecule(BaseMolecule):
+        """ A molecule
 
-            This method creates OBAtoms based on the atoms so it can use
-            the internal functions that openbabel provides through OBMol.
+            A molecule is a collection of atoms and provides methods to
+            extract or manipulate atoms.
 
-            Note: This will surely break at some point for .pdb files etc.
+            This is an implementation of the Molecule class that directly
+            supports openbabel as the underlying engine.
+
+            Internally, all atomic coordinates are stored in Angstrom
+            and this convention should be adhered to when attempting to
+            update the coordinates.
         """
-        if not isinstance(_atom, atom.Atom):
-            raise TypeError
-        _obatom = openbabel.OBAtom()
-        _obatom.SetAtomicNum(_atom.get_nuclear_charge())
-        x, y, z = _atom.get_coordinate()
-        _obatom.SetVector(x, y, z)
-        _obatom.SetId(_atom.get_idx())
-        _obatom.SetFormalCharge(_atom.get_formal_charge())
-        self._obmol.AddAtom(_obatom)
-
-
-    def add_bond(self, _bond):
-        #print("{}.{}({})".format(type(self).__name__, "add_bond", _bond))
-        _obatoms = []
-        for _obatom in openbabel.OBMolAtomIter(self._obmol):
-            #_atom = atom.Atom.from_obatom(_obatom)
-            try:
-                atom_index = _bond.get_nbr_atom_idx(_obatom.GetId())
-            except ValueError:
-                pass
+        def __init__(self, fromOBMol=None):
+            """ Initializes an empty molecule """
+            BaseMolecule.__init__(self)
+            if fromOBMol is not None:
+                self._obmol = openbabel.OBMol(fromOBMol)
+                self.set_name(fromOBMol.GetTitle())
             else:
-                _obatoms.append(_obatom)
-
-        assert len(_obatoms) == 2, "number of atoms in a bond must be 2."
-
-        _obbond = openbabel.OBBond()
-        _obbond.SetBegin(_obatoms[0])
-        _obbond.SetEnd(_obatoms[1])
-        _obbond.SetBondOrder(_bond.get_bond_order())
-        self._obmol.AddBond(_obbond)
+                self._obmol = openbabel.OBMol()
 
 
-    def get_multiplicity(self):
-        """ Returns the multiplicity of the molecule """
-        return self._obmol.GetTotalSpinMultiplicity()
+        def add_atom(self, _atom):
+            """ Adds an atom to the molecule
 
+                This method creates OBAtoms based on the atoms so it can use
+                the internal functions that openbabel provides through OBMol.
 
-    def set_multiplicity(self, value):
-        """ Sets the multiplicity of the molecule
-
-            Arguments:
-            value -- the integer charge of the molecule
-        """
-        if not isinstance(value, int):
-            raise ValueError("Argument 'value' must be of type integer")
-        self._obmol.SetTotalSpinMultiplicity(value)
-
-    def get_charge(self):
-        """ Returns the integer charge of the molecule """
-        return self._obmol.GetTotalCharge()
-
-
-    def set_charge(self, value):
-        """ Sets the integer charge of the molecule
-
-            Arguments:
-            value -- the integer charge of the molecule
-        """
-        if not isinstance(value, int):
-            raise ValueError("Argument 'value' must be of type integer")
-        self._obmol.SetTotalCharge(value)
-
-
-    def get_num_atoms(self):
-        """ Returns the number of atoms in the molecule """
-        return self._obmol.NumAtoms()
-
-
-    def get_atom(self, idx):
-        """ Returns an atom based on its index
-
-            Note: The internal format for indices in openbabel is
-                  to count from 1 to getNumAtoms() which is offset
-                  by one compared to the format we have chosen in
-                  the molecool library
-
-            Arguments:
-            idx -- the index (from 0 to getNumAtoms() -1)
-
-            Returns:
-            an atom with the specified index
-
-        """
-        n_atoms = self.get_num_atoms()
-        if idx < 0:
-            raise IndexError("argument idx to getAtom must be >= 0")
-        if idx >= n_atoms:
-            raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
-        return atom.Atom.from_obatom(self._obmol.GetAtom(idx+1))
-
-
-    def get_atoms(self):
-        """ Returns all atoms (as an iterator) in the molecule """
-        for _obatom in openbabel.OBMolAtomIter(self._obmol):
-            yield atom.Atom.from_obatom(_obatom)
-
-
-    def get_bonds(self):
-        """ Returns an iterator of all bonds in the molecule """
-        #self._obmol.ConnectTheDots() # what happens if called more than once?
-        for _obbond in openbabel.OBMolBondIter(self._obmol):
-            iat = _obbond.GetBeginAtom()
-            jat = _obbond.GetEndAtom()
-            yield bond.Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
-
-
-    def get_angles(self):
-        """ Returns an iterator of all angles in the molecule """
-        self._obmol.FindAngles() # does nothing if angles have been found
-        for _obangle in openbabel.OBMolAngleIter(self._obmol):
-            vertex, id1, id2 = _obangle
-            yield angle.Angle(vertex, id1, id2)
-
-
-    def percieve_bonds(self):
-        """ Attempts to percieve covalent bonds in the molecule """
-        self._obmol.ConnectTheDots()
-
-
-    def set_coordinates(self, c):
-        """ Sets coordinates of molecule
-
-            Arguments:
-            value -- coordinates to store. Must be numpy array.
-        """
-        if not isinstance(value, numpy.ndarray):
-            raise TypeError("Argument 'value' must be of type numpy array")
-        (n,k) = numpy.shape(value)
-        if n != self.get_num_atoms():
-            raise ValueError("Argument 'value' has the wrong number of atoms")
-        for iat, _obatom in enumerate(openbabel.OBMolAtomIter(self._obmol)):
-            x, y, z = c[iat]
+                Note: This will surely break at some point for .pdb files etc.
+            """
+            if not isinstance(_atom, atom.Atom):
+                raise TypeError
+            _obatom = openbabel.OBAtom()
+            _obatom.SetAtomicNum(_atom.get_nuclear_charge())
+            x, y, z = _atom.get_coordinate()
             _obatom.SetVector(x, y, z)
+            _obatom.SetId(_atom.get_idx())
+            _obatom.SetFormalCharge(_atom.get_formal_charge())
+            self._obmol.AddAtom(_obatom)
 
 
-    def find_children(self, atom):
-        """ Finds all atoms in the molecular graph as the supplied atom
+        def add_bond(self, _bond):
+            #print("{}.{}({})".format(type(self).__name__, "add_bond", _bond))
+            _obatoms = []
+            for _obatom in openbabel.OBMolAtomIter(self._obmol):
+                #_atom = atom.Atom.from_obatom(_obatom)
+                try:
+                    atom_index = _bond.get_nbr_atom_idx(_obatom.GetId())
+                except ValueError:
+                    pass
+                else:
+                    _obatoms.append(_obatom)
 
-            This method uses the internal one supplied with openbabel
+            assert len(_obatoms) == 2, "number of atoms in a bond must be 2."
 
-            Arguments:
-            atom -- the atom whose neighbours to get
-        """
-        self._obmol.ConnectTheDots() # what happens if called more than once?
-        idx = int(atom.get_idx()+1)
-        vector = openbabel.vectorInt()
-        self._obmol.FindChildren(vector, 0, idx)
-        indices = sorted([i-1 for i in vector] + [idx-1])
-        atoms = [self.get_atom(i) for i in indices]
-        return sorted(atoms, key=lambda _atom: _atom.get_idx())
+            _obbond = openbabel.OBBond()
+            _obbond.SetBegin(_obatoms[0])
+            _obbond.SetEnd(_obatoms[1])
+            _obbond.SetBondOrder(_bond.get_bond_order())
+            self._obmol.AddBond(_obbond)
+
+
+        def get_multiplicity(self):
+            """ Returns the multiplicity of the molecule """
+            return self._obmol.GetTotalSpinMultiplicity()
+
+
+        def set_multiplicity(self, value):
+            """ Sets the multiplicity of the molecule
+
+                Arguments:
+                value -- the integer charge of the molecule
+            """
+            if not isinstance(value, int):
+                raise ValueError("Argument 'value' must be of type integer")
+            self._obmol.SetTotalSpinMultiplicity(value)
+
+        def get_charge(self):
+            """ Returns the integer charge of the molecule """
+            return self._obmol.GetTotalCharge()
+
+
+        def set_charge(self, value):
+            """ Sets the integer charge of the molecule
+
+                Arguments:
+                value -- the integer charge of the molecule
+            """
+            if not isinstance(value, int):
+                raise ValueError("Argument 'value' must be of type integer")
+            self._obmol.SetTotalCharge(value)
+
+
+        def get_num_atoms(self):
+            """ Returns the number of atoms in the molecule """
+            return self._obmol.NumAtoms()
+
+
+        def get_atom(self, idx):
+            """ Returns an atom based on its index
+
+                Note: The internal format for indices in openbabel is
+                      to count from 1 to getNumAtoms() which is offset
+                      by one compared to the format we have chosen in
+                      the molecool library
+
+                Arguments:
+                idx -- the index (from 0 to getNumAtoms() -1)
+
+                Returns:
+                an atom with the specified index
+
+            """
+            n_atoms = self.get_num_atoms()
+            if idx < 0:
+                raise IndexError("argument idx to getAtom must be >= 0")
+            if idx >= n_atoms:
+                raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
+            return atom.Atom.from_obatom(self._obmol.GetAtom(idx+1))
+
+
+        def get_atoms(self):
+            """ Returns all atoms (as an iterator) in the molecule """
+            for _obatom in openbabel.OBMolAtomIter(self._obmol):
+                yield atom.Atom.from_obatom(_obatom)
+
+
+        def get_bonds(self):
+            """ Returns an iterator of all bonds in the molecule """
+            #self._obmol.ConnectTheDots() # what happens if called more than once?
+            for _obbond in openbabel.OBMolBondIter(self._obmol):
+                iat = _obbond.GetBeginAtom()
+                jat = _obbond.GetEndAtom()
+                yield bond.Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
+
+
+        def get_angles(self):
+            """ Returns an iterator of all angles in the molecule """
+            self._obmol.FindAngles() # does nothing if angles have been found
+            for _obangle in openbabel.OBMolAngleIter(self._obmol):
+                vertex, id1, id2 = _obangle
+                yield angle.Angle(vertex, id1, id2)
+
+
+        def percieve_bonds(self):
+            """ Attempts to percieve covalent bonds in the molecule """
+            self._obmol.ConnectTheDots()
+
+
+        def set_coordinates(self, c):
+            """ Sets coordinates of molecule
+
+                Arguments:
+                value -- coordinates to store. Must be numpy array.
+            """
+            if not isinstance(c, numpy.ndarray):
+                raise TypeError("Argument 'value' must be of type numpy array")
+            (n,k) = numpy.shape(c)
+            if n != self.get_num_atoms():
+                raise ValueError("Argument 'value' has the wrong number of atoms")
+            for iat, _obatom in enumerate(openbabel.OBMolAtomIter(self._obmol)):
+                x, y, z = c[iat]
+                _obatom.SetVector(x, y, z)
+
+
+        def find_children(self, atom):
+            """ Finds all atoms in the molecular graph as the supplied atom
+
+                This method uses the internal one supplied with openbabel
+
+                Arguments:
+                atom -- the atom whose neighbours to get
+            """
+            self._obmol.ConnectTheDots() # what happens if called more than once?
+            idx = int(atom.get_idx()+1)
+            vector = openbabel.vectorInt()
+            self._obmol.FindChildren(vector, 0, idx)
+            indices = sorted([i-1 for i in vector] + [idx-1])
+            atoms = [self.get_atom(i) for i in indices]
+            return sorted(atoms, key=lambda _atom: _atom.get_idx())
 
