@@ -308,7 +308,6 @@ class Molecule(BaseMolecule):
 
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
-        print("type: ", type(_atom))
         if not isinstance(_atom, atom.Atom):
             raise TypeError
         self._atoms.append(copy.deepcopy(_atom))
