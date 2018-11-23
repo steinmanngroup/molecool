@@ -1,6 +1,8 @@
+""" An atom in a molecule """
+
 import numpy
 
-import util
+import molecool.util
 
 class Atom(object):
     """ An atom
@@ -32,18 +34,23 @@ class Atom(object):
         assert Z > 0, "Nuclear charge of atom must be greater than zero."
         self._z = Z
         self._c = numpy.array(kwargs.get('xyz', [0, 0, 0]))
-        self._mass = kwargs.get('mass', util.MASSES[Z])
+        self._mass = kwargs.get('mass', molecool.util.MASSES[Z])
         self._idx = kwargs.get('idx', -1)
         self._fcharge = kwargs.get('fcharge', 0)
-        self._vdw_radius = kwargs.get('vwdradius', util.VDWRADII[Z])
-        self._cov_radius = kwargs.get('covradius', util.COVALENTRADII[Z])
-        self._coordination = kwargs.get('coordination', util.COORDINATION[Z])
+        self._vdw_radius = kwargs.get('vwdradius', molecool.util.VDWRADII[Z])
+        self._cov_radius = kwargs.get('covradius', molecool.util.COVALENTRADII[Z])
+        self._coordination = kwargs.get('coordination', molecool.util.COORDINATION[Z])
         self._hybridization = kwargs.get('hybridization', 0)
-        self._label = util.Z2LABEL[Z]
+        self._label = molecool.util.Z2LABEL[Z]
 
 
     @classmethod
     def from_atom(cls, other):
+        """ Creates an atom from another Atom
+
+            :param other: the other atom
+            :type other: Atom
+        """
         atom = cls(other.get_nuclear_charge(),
                    mass=other.get_mass(),
                    fcharge=other.get_formal_charge(),
@@ -55,7 +62,11 @@ class Atom(object):
 
     @classmethod
     def from_obatom(cls, _obatom):
-        """ Constructs an Atom from an openbabel OBAtom """
+        """ Constructs an Atom from an openbabel OBAtom
+
+            :param _obatom: an openbabel OBAtom
+            :type _obatom: openbabel.OBAtom
+        """
         x, y, z = _obatom.GetX(), _obatom.GetY(), _obatom.GetZ()
         _atom = cls(_obatom.GetAtomicNum(),
                     xyz=[x, y, z],
@@ -83,8 +94,8 @@ class Atom(object):
     def set_formal_charge(self, value):
         """ Sets the integer formal charge of the atom
 
-            Arguments:
-            value -- the integer formal charge
+            :param value: the integer formal charge
+            :type value: int
         """
         if not isinstance(value, int):
             raise TypeError
@@ -100,8 +111,8 @@ class Atom(object):
     def set_idx(self, value):
         """ Sets the internal index of the atom
 
-            Arguments:
-            value -- the integer index
+            :param value: the integer index
+            :type value: int
         """
         if not isinstance(value, int):
             raise TypeError
@@ -121,8 +132,8 @@ class Atom(object):
     def set_coordinate(self, value):
         """ Sets the 3D coordinate of the atom
 
-            Arguments:
-            value -- the coordinate given as a numpy array
+            :param value: the coordinate given as a numpy array
+            :type value: numpy.ndarray
         """
         if not isinstance(value, numpy.ndarray):
             raise TypeError("Argument 'value' must be of type numpy array")
@@ -145,13 +156,13 @@ class Atom(object):
     def set_coordination(self, value):
         """ Sets the coordination number
 
-            Arguments:
-            value -- the coordination number
+            :param value: the coordination number
+            :type value: int
         """
         if not isinstance(value, int):
             raise TypeError
 
-        max_coordination = util.COORDINATION[self._z]
+        max_coordination = molecool.util.COORDINATION[self._z]
         if value > max_coordination:
             raise ValueError("Coordination number too large.")
 
@@ -202,6 +213,9 @@ class Atom(object):
             Other things that could be tested for in the future or
             through another method implying stronger equivalence:
                 * hybridization
+
+            :param other: the other atom
+            :type other: Atom
         """
         if self.get_nuclear_charge() != other.get_nuclear_charge():
             return False
@@ -214,4 +228,7 @@ class Atom(object):
 
 
     def __repr__(self):
-        return "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])".format(self.get_nuclear_charge(), self.get_coordinate(), self.get_idx())
+        fmt_str = "Atom({0:d}, xyz=[{1[0]:.7f}, {1[1]:.7f}, {1[2]:.7f}, idx={2:d}])"
+        return fmt_str.format(self.get_nuclear_charge(),
+                              self.get_coordinate(),
+                              self.get_idx())

@@ -1,9 +1,11 @@
+""" A molecule """
+
 import copy
 import numpy
 
-import atom
-import bond
-import angle
+import molecool.atom
+import molecool.bond
+import molecool.angle
 
 __has_openbabel__ = False
 try:
@@ -239,7 +241,7 @@ class BaseMolecule(object):
         """
 
         neighbour_indices = []
-        for ibond, bond in enumerate(self.get_bonds()):
+        for bond in self.get_bonds():
             try:
                 nbr_index = bond.get_nbr_atom_idx(atom.get_idx())
             except ValueError:
@@ -273,12 +275,12 @@ class BaseMolecule(object):
                 yield _atom
 
 
-    def find_children(self, atom):
+    def find_children(self, other_atom):
         """ Finds all atoms in the molecular graph as the supplied atom
 
-            :param atom: the atom.Atom whose neighbours to get
-            :type atom: atom.Atom
-
+            :param other_atom: the atom whose neighbours to get
+            :type other_atom: atom.Atom
+            :returns: a list of atoms sorted according to their internal index
             :rtype: list
         """
         raise NotImplementedError # pragma: no cover
@@ -305,7 +307,7 @@ class Molecule(BaseMolecule):
 
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
-        if not isinstance(_atom, atom.Atom):
+        if not isinstance(_atom, molecool.atom.Atom):
             raise TypeError
         self._atoms.append(copy.deepcopy(_atom))
 
@@ -375,7 +377,7 @@ class Molecule(BaseMolecule):
                 if jatm >= 0:
                     iatm = bond1.get_nbr_atom_idx(jatm)
                     katm = bond2.get_nbr_atom_idx(jatm)
-                    yield angle.Angle(jatm, iatm, katm)
+                    yield molecool.angle.Angle(jatm, iatm, katm)
 
 
     def percieve_bonds(self):
@@ -393,7 +395,7 @@ class Molecule(BaseMolecule):
                 dr_cov = atom1.get_covalent_radius() + atom2.get_covalent_radius() + self._bond_threshold
                 R2_cov = dr_cov**2
                 if R2 < R2_cov:
-                    yield bond.Bond(id1=atom1.get_idx(), id2=atom2.get_idx())
+                    yield molecool.bond.Bond(id1=atom1.get_idx(), id2=atom2.get_idx())
 
 
     def set_coordinates(self, value):
@@ -404,24 +406,23 @@ class Molecule(BaseMolecule):
         """
         if not isinstance(value, numpy.ndarray):
             raise TypeError("Argument 'value' must be of type numpy array")
-        (n,k) = numpy.shape(value)
+        (n, ) = numpy.shape(value)
         if n != self.get_num_atoms():
             raise ValueError("Argument 'value' has the wrong number of atoms")
         for iat, _atom in enumerate(self.get_atoms()):
             _atom.set_coordinate(value[iat])
 
 
-    def find_children(self, atom):
+    def find_children(self, other_atom):
         """ Finds all atoms in the molecular graph as the supplied atom
 
-            Arguments:
-            atom -- the atom whose neighbours to get
-
-            Returns:
-            List of atoms sorted according to their internal index
+            :param other_atom: the atom whose neighbours to get
+            :type other_atom: atom.Atom
+            :returns: a list of atoms sorted according to their internal index
+            :rtype: list
         """
         atoms = []
-        old_atoms = [atom]
+        old_atoms = [other_atom]
 
         for i in range(2):
             atoms = []
@@ -430,12 +431,12 @@ class Molecule(BaseMolecule):
                 for _nbr in self.iter_atom_atoms(_atom):
                     if _nbr not in old_atoms:
                         new_atoms.append(_nbr)
-                ll = [a.get_idx() for a in new_atoms]
+                #ll = [a.get_idx() for a in new_atoms]
 
-                if len(new_atoms) > 0:
+                if new_atoms: # check if sequency is empty
                     atoms.extend(new_atoms)
 
-            if len(atoms) > 0:
+            if atoms: # check if sequency is empty
                 old_atoms.extend(atoms)
             else:
                 break
@@ -479,7 +480,7 @@ if __has_openbabel__:
 
                 Note: This will surely break at some point for .pdb files etc.
             """
-            if not isinstance(_atom, atom.Atom):
+            if not isinstance(_atom, molecool.atom.Atom):
                 raise TypeError
             _obatom = openbabel.OBAtom()
             _obatom.SetAtomicNum(_atom.get_nuclear_charge())
@@ -567,13 +568,13 @@ if __has_openbabel__:
                 raise IndexError("argument idx to getAtom must be >= 0")
             if idx >= n_atoms:
                 raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
-            return atom.Atom.from_obatom(self._obmol.GetAtom(idx+1))
+            return molecool.atom.Atom.from_obatom(self._obmol.GetAtom(idx+1))
 
 
         def get_atoms(self):
             """ Returns all atoms (as an iterator) in the molecule """
             for _obatom in openbabel.OBMolAtomIter(self._obmol):
-                yield atom.Atom.from_obatom(_obatom)
+                yield molecool.atom.Atom.from_obatom(_obatom)
 
 
         def get_bonds(self):
@@ -582,7 +583,7 @@ if __has_openbabel__:
             for _obbond in openbabel.OBMolBondIter(self._obmol):
                 iat = _obbond.GetBeginAtom()
                 jat = _obbond.GetEndAtom()
-                yield bond.Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
+                yield molecool.bond.Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
 
 
         def get_angles(self):
@@ -590,7 +591,7 @@ if __has_openbabel__:
             self._obmol.FindAngles() # does nothing if angles have been found
             for _obangle in openbabel.OBMolAngleIter(self._obmol):
                 vertex, id1, id2 = _obangle
-                yield angle.Angle(vertex, id1, id2)
+                yield molecool.angle.Angle(vertex, id1, id2)
 
 
         def percieve_bonds(self):
@@ -598,35 +599,33 @@ if __has_openbabel__:
             self._obmol.ConnectTheDots()
 
 
-        def set_coordinates(self, c):
+        def set_coordinates(self, value):
             """ Sets coordinates of molecule
 
                 Arguments:
                 value -- coordinates to store. Must be numpy array.
             """
-            if not isinstance(c, numpy.ndarray):
+            if not isinstance(value, numpy.ndarray):
                 raise TypeError("Argument 'value' must be of type numpy array")
-            (n,k) = numpy.shape(c)
+            (n, ) = numpy.shape(value)
             if n != self.get_num_atoms():
                 raise ValueError("Argument 'value' has the wrong number of atoms")
             for iat, _obatom in enumerate(openbabel.OBMolAtomIter(self._obmol)):
-                x, y, z = c[iat]
+                x, y, z = value[iat]
                 _obatom.SetVector(x, y, z)
 
-
-        def find_children(self, atom):
+        def find_children(self, other_atom):
             """ Finds all atoms in the molecular graph as the supplied atom
 
-                This method uses the internal one supplied with openbabel
-
-                Arguments:
-                atom -- the atom whose neighbours to get
+                :param other_atom: the atom whose neighbours to get
+                :type other_atom: atom.Atom
+                :returns: a list of atoms sorted according to their internal index
+                :rtype: list
             """
             self._obmol.ConnectTheDots() # what happens if called more than once?
-            idx = int(atom.get_idx()+1)
+            idx = int(other_atom.get_idx()+1)
             vector = openbabel.vectorInt()
             self._obmol.FindChildren(vector, 0, idx)
             indices = sorted([i-1 for i in vector] + [idx-1])
             atoms = [self.get_atom(i) for i in indices]
             return sorted(atoms, key=lambda _atom: _atom.get_idx())
-
