@@ -1,4 +1,4 @@
-from .bond import Bond
+from molecool.bond import Bond
 
 class Angle(object):
     """ An angle between three Atom objects.
