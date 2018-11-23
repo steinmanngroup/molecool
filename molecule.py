@@ -482,7 +482,7 @@ if __has_openbabel__:
 
                 Note: This will surely break at some point for .pdb files etc.
             """
-            if not isinstance(_atom, Atom):
+            if not isinstance(_atom, atom.Atom):
                 raise TypeError
             _obatom = openbabel.OBAtom()
             _obatom.SetAtomicNum(_atom.get_nuclear_charge())
