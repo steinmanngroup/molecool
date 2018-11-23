@@ -3,9 +3,10 @@
 import copy
 import numpy
 
-import molecool.atom
-import molecool.bond
-import molecool.angle
+import atom
+from molecool.atom import Atom
+from molecool.bond import Bond
+from molecool.angle import Angle
 
 __has_openbabel__ = False
 try:
@@ -307,7 +308,8 @@ class Molecule(BaseMolecule):
 
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
-        if not isinstance(_atom, molecool.atom.Atom):
+        print("type: ", type(_atom))
+        if not isinstance(_atom, atom.Atom):
             raise TypeError
         self._atoms.append(copy.deepcopy(_atom))
 
@@ -377,7 +379,7 @@ class Molecule(BaseMolecule):
                 if jatm >= 0:
                     iatm = bond1.get_nbr_atom_idx(jatm)
                     katm = bond2.get_nbr_atom_idx(jatm)
-                    yield molecool.angle.Angle(jatm, iatm, katm)
+                    yield Angle(jatm, iatm, katm)
 
 
     def percieve_bonds(self):
@@ -395,7 +397,7 @@ class Molecule(BaseMolecule):
                 dr_cov = atom1.get_covalent_radius() + atom2.get_covalent_radius() + self._bond_threshold
                 R2_cov = dr_cov**2
                 if R2 < R2_cov:
-                    yield molecool.bond.Bond(id1=atom1.get_idx(), id2=atom2.get_idx())
+                    yield Bond(id1=atom1.get_idx(), id2=atom2.get_idx())
 
 
     def set_coordinates(self, value):
@@ -480,7 +482,7 @@ if __has_openbabel__:
 
                 Note: This will surely break at some point for .pdb files etc.
             """
-            if not isinstance(_atom, molecool.atom.Atom):
+            if not isinstance(_atom, Atom):
                 raise TypeError
             _obatom = openbabel.OBAtom()
             _obatom.SetAtomicNum(_atom.get_nuclear_charge())
@@ -568,13 +570,13 @@ if __has_openbabel__:
                 raise IndexError("argument idx to getAtom must be >= 0")
             if idx >= n_atoms:
                 raise IndexError("argument idx to getAtom must be < {}".format(n_atoms))
-            return molecool.atom.Atom.from_obatom(self._obmol.GetAtom(idx+1))
+            return Atom.from_obatom(self._obmol.GetAtom(idx+1))
 
 
         def get_atoms(self):
             """ Returns all atoms (as an iterator) in the molecule """
             for _obatom in openbabel.OBMolAtomIter(self._obmol):
-                yield molecool.atom.Atom.from_obatom(_obatom)
+                yield Atom.from_obatom(_obatom)
 
 
         def get_bonds(self):
@@ -583,7 +585,7 @@ if __has_openbabel__:
             for _obbond in openbabel.OBMolBondIter(self._obmol):
                 iat = _obbond.GetBeginAtom()
                 jat = _obbond.GetEndAtom()
-                yield molecool.bond.Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
+                yield Bond(iat.GetId(), jat.GetId(), order=_obbond.GetBondOrder())
 
 
         def get_angles(self):
@@ -591,7 +593,7 @@ if __has_openbabel__:
             self._obmol.FindAngles() # does nothing if angles have been found
             for _obangle in openbabel.OBMolAngleIter(self._obmol):
                 vertex, id1, id2 = _obangle
-                yield molecool.angle.Angle(vertex, id1, id2)
+                yield Angle(vertex, id1, id2)
 
 
         def percieve_bonds(self):

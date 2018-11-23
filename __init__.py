@@ -1,6 +1,6 @@
-from atom import Atom
-from bond import Bond
-from molecule import Molecule
+from .atom import Atom
+from .bond import Bond
+from .molecule import Molecule
 
 __author__ = "Casper Steinmann"
 __copyright__ = "Copyright 2017"
