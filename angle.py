@@ -15,7 +15,7 @@ class Angle(object):
 
         is defined in the Angle class as
 
-        >>> a = Angle(B.getIdx(), A.getIdx(), C.getIdx())
+        >>> a = Angle(B.get_idx(), A.get_idx(), C.get_idx())
 
         where B is the vertex of the angle.
     """

@@ -1,3 +1,4 @@
+""" A SMILES engine """
 from __future__ import print_function
 
 from collections import Counter
@@ -52,8 +53,9 @@ class Smiles(object):
 
         >>> S = Smiles("CC")
 
-        which will generate a molecule (sans 3D geometry)
-        like the following::
+        which will generate a molecular graph, i.e. a molecule
+        without the 3D geometry but with atoms and bonds like
+        the following::
 
            Atom(6, idx=0) Bond(0, 1) Atom(6, idx=1)
 
@@ -63,8 +65,7 @@ class Smiles(object):
         up to 9 which means the % modifier has not been im-
         plemented yet.
 
-        There is also support for branches but some bugs
-        are still present regarding atom indices.
+        There is also support for branches.
     """
     def __init__(self, s, **kwargs):
         """ Initializes the SMILES engine
