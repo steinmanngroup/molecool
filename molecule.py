@@ -498,7 +498,7 @@ if __has_openbabel__:
             for _obatom in openbabel.OBMolAtomIter(self._obmol):
                 #_atom = atom.Atom.from_obatom(_obatom)
                 try:
-                    ob_atom_index = int(_obatom.GetId()) # openbabel returns a long here.
+                    ob_atom_index = int(_obatom.GetId()) # openbabel returns a long here for python2
                     atom_index = _bond.get_nbr_atom_idx(ob_atom_index)
                 except ValueError:
                     pass

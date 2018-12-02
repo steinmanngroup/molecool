@@ -44,5 +44,5 @@ def test_atom_sharing():
 def test_type_checking():
     b = Bond(2,0)
     with pytest.raises(TypeError):
-        value_long = long(2)
+        value_long = float(2) # do not test long because it obsolete in python3
         b.get_nbr_atom_idx(value_long)
