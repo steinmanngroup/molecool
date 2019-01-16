@@ -351,17 +351,23 @@ class Molecule(BaseMolecule):
 
 
     def get_atoms(self):
-        """ Returns all atoms (as an iterator) in the molecule """
+        """ Returns all atoms (as an iterator) in the molecule
+
+            :returns: all atoms as an iterator
+            :rtype: collections.Iterable[atom.Atom]
+        """
         for _atom in self._atoms:
             yield _atom
 
 
     def get_bonds(self):
-        #print("{}.{}".format(type(self).__name__, "get_bonds"))
         """ Returns an iterator of all bonds in the molecule
 
             If the bond list has not been calculated before, the bonds are
             percieved through the percieveBonds method
+
+            :returns: all bonds as an iterator
+            :rtype: collections.Iterable[bond.Bond]
         """
         if len(self._bonds) == 0:
             self._bonds = list(self.percieve_bonds())
@@ -369,8 +375,13 @@ class Molecule(BaseMolecule):
         for _bond in self._bonds:
             yield _bond
 
+
     def get_angles(self):
-        """ Returns an iterator of all angles in the molecule """
+        """ Returns an iterator of all angles in the molecule
+
+            :returns: all angles as an iterator
+            :rtype: collections.Iterable[angle.Angle]
+        """
         for ibd, bond1 in enumerate(self.get_bonds()):
             for jbd, bond2 in enumerate(self.get_bonds()):
                 if ibd <= jbd: continue
