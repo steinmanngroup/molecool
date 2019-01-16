@@ -95,6 +95,10 @@ class Smiles(object):
             print("------------------------------")
         self.parse_smiles(s, None)
 
+        # charge of molecule = sum of formal charges on atoms as a first guess
+        formal_charges = [a.get_formal_charge() for a in self._mol.get_atoms()]
+        self._mol.set_charge(sum(formal_charges))
+
         # now we do some checks
         if sum(self._ring_openings) != -1*MAX_RING_INDICES:
             print(self._ring_openings)

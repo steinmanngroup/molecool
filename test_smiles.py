@@ -82,11 +82,19 @@ def test_atoms():
     with pytest.raises(IndexError):
         SS = Smiles("[C")
 
+    SS = Smiles("[Cl-]", debug = True)
+    assert SS._mol.get_charge() == -1
+
+    SS = Smiles("[Na+].[Cl-]", debug = True)
+    assert SS._mol.get_charge() == 0
+
     SS = Smiles("C=[NH2+]")
     _atoms = list(SS._mol.get_atoms())
     _bonds = list(SS._mol.get_bonds())
     assert len(_atoms) == 4
     assert _bonds[0].get_bond_order() == 2
+    assert SS._mol.get_charge() == 1
+
 
 def test_bonds():
     SS1 = Smiles("CC")
@@ -259,3 +267,4 @@ def test_regressions():
 
     for i, iat in enumerate(SS._mol.get_atoms()):
         assert iat.get_idx() == i
+
