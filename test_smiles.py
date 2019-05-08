@@ -217,6 +217,15 @@ def test_branched_bracket_atoms():
     for i, iat in enumerate(SS1._mol.get_atoms()):
         assert iat.get_idx() == i
 
+    # test hydroxyl anion
+    SS3 = Smiles("[OH1-]", debug=False)
+    _atoms = list(SS3._mol.get_atoms())
+    _bonds = list(SS3._mol.get_bonds())
+    assert len(_atoms) == 2
+    assert len(_bonds) == 1
+    assert SS3._mol.get_charge() == -1
+
+
 
 def test_nonbonded():
     SS1 = Smiles("C1.C1")
@@ -267,4 +276,3 @@ def test_regressions():
 
     for i, iat in enumerate(SS._mol.get_atoms()):
         assert iat.get_idx() == i
-
