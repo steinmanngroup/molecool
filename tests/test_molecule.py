@@ -199,7 +199,6 @@ if has_openbabel:
             assert ibond.get_bond_order() == 2
             assert jbond.get_bond_order() == 2
 
-    @pytest.mark.xfail()
     def test_openbabel_to_molecule_copy():
         _obmol = OBMoleculeFromFilenameAndFormat('HOH.xyz', file_format='xyz')
         mol = load_molecule_from_xyz('HOH.xyz')
@@ -228,7 +227,6 @@ if has_openbabel:
             assert a1 == a2
 
 
-    # TODO: This does not currently work (python3.7)
     def OBMoleculeFromFilenameAndFormat(filename, file_format='pdb'):
         """ Loads a molecule into an OpenBabel molecule.
 
