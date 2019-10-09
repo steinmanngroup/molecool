@@ -1,6 +1,6 @@
 import pytest
 
-from bond import Bond
+from molecool.bond import Bond
 
 
 def test_creation():

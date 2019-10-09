@@ -3,7 +3,7 @@ import pytest
 
 import numpy
 
-from atom import Atom
+from molecool.atom import Atom
 
 
 def test_atom_basic():

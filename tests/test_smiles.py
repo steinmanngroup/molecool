@@ -3,8 +3,8 @@ from __future__ import print_function
 from collections import Counter
 import pytest
 
-import smiles
-from smiles import Smiles
+import molecool.smiles as smiles
+from molecool.smiles import Smiles
 
 def test_smiles_parse_atoms():
     """ Tests the SMILES engine atom parser """

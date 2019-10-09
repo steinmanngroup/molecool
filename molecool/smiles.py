@@ -4,10 +4,10 @@ from __future__ import print_function
 from collections import Counter
 import pytest
 
-from molecule import Molecule
-from atom import Atom
-from bond import Bond
-from util import LABEL2Z
+from molecool.molecule import Molecule
+from molecool.atom import Atom
+from molecool.bond import Bond
+from molecool.util import LABEL2Z
 
 
 BOND_ORDERS = {"-": 1, "=": 2, "#": 3, ":": 4}

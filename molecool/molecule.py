@@ -4,9 +4,9 @@ import copy
 import numpy
 
 #import atom
-from .atom import Atom
-from .bond import Bond
-from .angle import Angle
+from molecool.atom import Atom
+from molecool.bond import Bond
+from molecool.angle import Angle
 
 __has_openbabel__ = False
 try:
@@ -309,7 +309,7 @@ class Molecule(BaseMolecule):
 
     def add_atom(self, _atom):
         """ Adds an atom to the molecule """
-        if not isinstance(_atom, atom.Atom):
+        if not isinstance(_atom, Atom):
             raise TypeError
         self._atoms.append(copy.deepcopy(_atom))
 
@@ -492,7 +492,7 @@ if __has_openbabel__:
 
                 Note: This will surely break at some point for .pdb files etc.
             """
-            if not isinstance(_atom, atom.Atom):
+            if not isinstance(_atom, Atom):
                 raise TypeError
             _obatom = openbabel.OBAtom()
             _obatom.SetAtomicNum(_atom.get_nuclear_charge())
