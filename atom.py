@@ -2,7 +2,7 @@
 
 import numpy
 
-import molecool.util
+import util
 
 class Atom(object):
     """ An atom
@@ -34,14 +34,14 @@ class Atom(object):
         assert Z > 0, "Nuclear charge of atom must be greater than zero."
         self._z = Z
         self._c = numpy.array(kwargs.get('xyz', [0, 0, 0]))
-        self._mass = kwargs.get('mass', molecool.util.MASSES[Z])
+        self._mass = kwargs.get('mass', util.MASSES[Z])
         self._idx = kwargs.get('idx', -1)
         self._fcharge = kwargs.get('fcharge', 0)
-        self._vdw_radius = kwargs.get('vwdradius', molecool.util.VDWRADII[Z])
-        self._cov_radius = kwargs.get('covradius', molecool.util.COVALENTRADII[Z])
-        self._coordination = kwargs.get('coordination', molecool.util.COORDINATION[Z])
+        self._vdw_radius = kwargs.get('vwdradius', util.VDWRADII[Z])
+        self._cov_radius = kwargs.get('covradius', util.COVALENTRADII[Z])
+        self._coordination = kwargs.get('coordination', util.COORDINATION[Z])
         self._hybridization = kwargs.get('hybridization', 0)
-        self._label = molecool.util.Z2LABEL[Z]
+        self._label = util.Z2LABEL[Z]
 
 
     @classmethod
@@ -162,7 +162,7 @@ class Atom(object):
         if not isinstance(value, int):
             raise TypeError
 
-        max_coordination = molecool.util.COORDINATION[self._z]
+        max_coordination = util.COORDINATION[self._z]
         if value > max_coordination:
             raise ValueError("Coordination number too large.")
 
@@ -208,11 +208,13 @@ class Atom(object):
 
             We test the following:
                 * do the atoms have the same nuclear charge?
-                * are they placed ontop of each other
 
             Other things that could be tested for in the future or
             through another method implying stronger equivalence:
                 * hybridization
+
+            We DO NOT test the following:
+                * are they placed ontop of each other
 
             :param other: the other atom
             :type other: Atom
@@ -220,11 +222,11 @@ class Atom(object):
         if self.get_nuclear_charge() != other.get_nuclear_charge():
             return False
 
-        EPS = 1.0e-6
-        dr = self.get_coordinate() - other.get_coordinate()
-        R2 = dr.dot(dr)
-
-        return numpy.sqrt(R2) < EPS
+        #EPS = 1.0e-6
+        #dr = self.get_coordinate() - other.get_coordinate()
+        #R2 = dr.dot(dr)
+        #return numpy.sqrt(R2) < EPS
+        return True
 
 
     def __repr__(self):

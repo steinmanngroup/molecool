@@ -3,10 +3,10 @@
 import copy
 import numpy
 
-import atom
-from molecool.atom import Atom
-from molecool.bond import Bond
-from molecool.angle import Angle
+#import atom
+from .atom import Atom
+from .bond import Bond
+from .angle import Angle
 
 __has_openbabel__ = False
 try:
@@ -15,6 +15,7 @@ except ImportError:
     pass
 else:
     __has_openbabel__ = True
+
 
 class BaseMolecule(object):
     """ A molecule
@@ -443,7 +444,6 @@ class Molecule(BaseMolecule):
                 for _nbr in self.iter_atom_atoms(_atom):
                     if _nbr not in old_atoms:
                         new_atoms.append(_nbr)
-                #ll = [a.get_idx() for a in new_atoms]
 
                 if new_atoms: # check if sequency is empty
                     atoms.extend(new_atoms)

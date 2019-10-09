@@ -73,5 +73,6 @@ def test_atom_copy():
     assert a1 == a2
     assert a1.get_hybridization() == a2.get_hybridization()
 
-    a2 = Atom(1)
-    assert a1 != a2
+    # we no longer test difference in position
+    #a2 = Atom(1)
+    #assert a1 != a2

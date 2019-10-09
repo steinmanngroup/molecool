@@ -13,23 +13,30 @@ from util import LABEL2Z
 BOND_ORDERS = {"-": 1, "=": 2, "#": 3, ":": 4}
 MAX_RING_INDICES = 9
 
+
 class AtomError(ValueError):
     pass
+
 
 class AtomBracketError(AtomError):
     pass
 
+
 class IllegalAtomError(AtomError):
     pass
+
 
 class BranchBracketError(ValueError):
     pass
 
+
 class RingError(ValueError):
     pass
 
+
 class RingNumberNotSupported(RingError):
     pass
+
 
 class RingClosureError(RingError):
     pass
@@ -59,11 +66,11 @@ class Smiles(object):
 
            Atom(6, idx=0) Bond(0, 1) Atom(6, idx=1)
 
-        The engine suports the organic subset of atoms and
+        The engine supports the organic subset of atoms and
         atoms in brackets, i.e. [Fe2+] for example. There
         is support for rings (not nested though) and only
-        up to 9 which means the % modifier has not been im-
-        plemented yet.
+        up to 9 which means the % modifier has not been
+        implemented yet.
 
         There is also support for branches.
     """
@@ -287,8 +294,8 @@ def parse_atom(s, atom_index=-1, debug=False):
         except KeyError:
             raise IllegalAtomError("The atom '{}' is invalid.".format(s))
         else:
-           # just return the atom
-           return [Atom(Z, idx=atom_index)], [], atom_index +1
+            # just return the atom
+            return [Atom(Z, idx=atom_index)], [], atom_index +1
 
     idx_atom_end = -1 # atomic label from 0:idx_atom_end
 
@@ -355,7 +362,7 @@ def parse_atom(s, atom_index=-1, debug=False):
     return atoms, bonds, atom_index+1+n_hydrogens
 
 if __name__ == '__main__':
-    SS = Smiles("C([H])([H])[H]", debug=False)
+    SS = Smiles("C(=O)(N)c1cccnc1", debug=False)
     print(list(SS._mol.get_atoms()))
     #print(list(SS._mol.get_atoms()))
     print(list(SS._mol.get_bonds()))
