@@ -1,6 +1,5 @@
-from smiles import Smiles
-from smarts import Smarts
-import writers
+from molecool.smiles import Smiles
+from molecool.smarts import Smarts
 
 def test_atomic_match():
     SS = Smiles("C", debug=False)
@@ -19,4 +18,3 @@ def test_atomic_match():
     assert SA._results[0][0] == 0
     assert SA._results[1][0] == 2
     #print(SA._results)
-    assert False

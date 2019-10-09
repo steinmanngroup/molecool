@@ -1,6 +1,6 @@
 """ A SMARTS engine """
 
-import smiles
+from molecool.smiles import parse_atom
 
 class Smarts(object):
     """ The molecool SMARTS engine
@@ -37,9 +37,9 @@ class Smarts(object):
             # organic subset
             if s[l_idx_string] in ["B", "C", "N", "O", "P", "S", "F", "I"]: # Cl and Br handled just below
                 if s[l_idx_string:l_idx_string+1] in ["Br", "Cl"]:
-                    _a, _b, _t = smiles.parse_atom(s[l_idx_string:l_idx_string+1])
+                    _a, _b, _t = parse_atom(s[l_idx_string:l_idx_string+1])
                 else:
-                    _a, _b, _t = smiles.parse_atom(s[l_idx_string:l_idx_string+1])
+                    _a, _b, _t = parse_atom(s[l_idx_string:l_idx_string+1])
 
                 matches = match(mol, _a[0])
                 if matches:
@@ -56,14 +56,3 @@ def match(mol, atom):
             indices.append([_atom.get_idx()])
     return indices
 
-#if __name__ == '__main__':
-def test_smarts():
-    from smiles import Smiles
-    import writers
-    SS = Smiles("[CH2][CH3]", debug=False)
-    mol = SS.get_molecule()
-    writers.xyz(mol)
-
-    SA = Smarts(mol, "C", debug=True)
-    print(SA._results)
-    assert False

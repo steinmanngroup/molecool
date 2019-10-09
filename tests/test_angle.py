@@ -1,6 +1,6 @@
 import pytest
 
-from angle import Angle
+from molecool.angle import Angle
 
 
 def test_angle():
