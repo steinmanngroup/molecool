@@ -10,7 +10,7 @@ from molecool.angle import Angle
 
 __has_openbabel__ = False
 try:
-    import openbabel
+    from openbabel import openbabel
 except ImportError:
     pass
 else:

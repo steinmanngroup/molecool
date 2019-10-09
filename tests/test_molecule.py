@@ -7,7 +7,7 @@ from molecool.util import LABEL2Z
 
 has_openbabel = True
 try:
-    import openbabel
+    from openbabel import openbabel
 except ImportError:
     has_openbabel = False
 
@@ -200,7 +200,7 @@ if has_openbabel:
             assert jbond.get_bond_order() == 2
 
     def test_openbabel_to_molecule_copy():
-        _obmol = OBMoleculeFromFilenameAndFormat('HOH.xyz', file_format='xyz')
+        _obmol = OBMoleculeFromFilenameAndFormat('fixtures/HOH.xyz', file_format='xyz')
         mol = load_molecule_from_xyz('HOH.xyz')
         mol2 = OBMolecule(fromOBMol = _obmol)
 
